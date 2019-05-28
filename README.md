@@ -26,10 +26,10 @@ some truncation, which you can fix by removing the spurious lines from
 
 There is also a reference prompt that can talk to apparix, if you've got it set
 up, in `prompt.bash`. A minimal demo `bashrc` to call both is provided. You can
-try it out by running `./demo_bash`.
+try it out by running `demo/demo_bash`.
 
-Similarly, I have included a `prompt.zsh`, `zshrc` and `./demo_zsh`. See below
-screenshot for what they should hopefully look like.
+Similarly, I have included a `prompt.zsh`, `zshrc` and `demo/demo_zsh`. See
+below screenshot for what they should hopefully look like.
 
 A recommendation for Zsh users that fills a similar niche is the Zsh native
 `hash -d` command (`man zshall`), which provides directory hashes with a prefix
