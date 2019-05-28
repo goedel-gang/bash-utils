@@ -29,7 +29,10 @@ up, in `prompt.bash`. A minimal demo `bashrc` to call both is provided. You can
 try it out by running `demo/demo_bash`.
 
 Similarly, I have included a `prompt.zsh`, `zshrc` and `demo/demo_zsh`. See
-below screenshot for what they should hopefully look like.
+below screenshot for what they should hopefully look like (in this screenshot I
+used tab completion. It's a little hard to see, but it's definitely there, in
+between the `h` and the `ello\ world` (which is to say, I didn't have to type
+any backslashes)).
 
 A recommendation for Zsh users that fills a similar niche is the Zsh native
 `hash -d` command (`man zshall`), which provides directory hashes with a prefix
