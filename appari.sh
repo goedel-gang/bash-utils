@@ -127,7 +127,11 @@
 
 # TODO: replace echo with printf
 
+# TODO: better error messages if not apparix-init, or better yet, apparix-init
+# automatically
+
 APPARIXHOME="${APPARIXHOME:=$HOME}"
+mkdir -p "$APPARIXHOME"
 APPARIXRC="${APPARIXRC:=$APPARIXHOME/.apparixrc}"
 APPARIXEXPAND="${APPARIXEXPAND:=$APPARIXHOME/.apparixexpand}"
 APPARIXLOG="${APPARIXLOG:=$APPARIXHOME/.apparixlog}"
@@ -541,20 +545,21 @@ elif [[ -n "$ZSH_VERSION" ]]; then
     compinit
 
     function _apparix_file() {
+        IFS=$'\n'
         _arguments \
-          '1:mark:_values "\n" $(cut -d, -f2 "$APPARIXRC" "$APPARIXEXPAND")' \
-          '2:file:_path_files -W "$(apparish "$words[2]" 2>/dev/null)"'
+            '1:mark:($(cut -d, -f2 "$APPARIXRC" "$APPARIXEXPAND"))' \
+            '2:file:_path_files -W "$(apparish "$words[2]" 2>/dev/null)"'
     }
 
     function _apparix_directory() {
+        IFS=$'\n'
         _arguments \
-          '1:mark:_values "\n" $(cut -d, -f2 "$APPARIXRC" "$APPARIXEXPAND")' \
-          '2:file:_path_files -/W "$(apparish "$words[2]" 2>/dev/null)"'
+            '1:mark:($(cut -d, -f2 "$APPARIXRC" "$APPARIXEXPAND"))' \
+            '2:file:_path_files -/W "$(apparish "$words[2]" 2>/dev/null)"'
     }
 
     compdef _apparix_file "${APPARIX_FILE_FUNCTIONS[@]}"
     compdef _apparix_directory "${APPARIX_DIR_FUNCTIONS[@]}"
-
 else
     >&2 echo "Apparish: I don't know how to generate completions"
 fi
