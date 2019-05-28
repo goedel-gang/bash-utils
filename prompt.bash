@@ -1,5 +1,3 @@
-# vim: ft=sh
-
 # FIGMENTIZE: prompt
 #                                          __
 # ______ _______   ____    _____  ______ _/  |_
@@ -9,12 +7,9 @@
 # |__|                         \/ |__|
 
 # file that sets up my flashy bashy prompt
-# This file was taken from
-# https://github.com/goedel-gang/dotfiles/commit/7db604534dc08672d5a6a4a5ca42968ee9398dbc
-# and has had some bits lopped off to make it more stand-alone. See the original
-# for a vi-mode indicator and Git information in the prompt.
-# This one is mostly to provide a prompt with some colours, basic information
-# and an apparix component.
+
+# This is a redacted version of the one at goedel-gang/dotfiles/master/.bash
+# which has a Git segment and a vi-mode indicator.
 
 # here follow a set of functions I have defined to compartmentalise my prompt a
 # little. They make heavy use of ANSI terminal codes and \[ \], which are used
@@ -59,14 +54,15 @@ shlvl_prompt() {
     fi
 }
 
-# function which returns red if the user has root privileges, and pink otherwise
+# function which returns magenta if the user has root privileges, and yellow
+# otherwise
 user_prompt() {
     if [[ $EUID -ne 0 ]]; then
         # echo -n "\[$(tput setaf 5)\]\u"
         echo -n "\[\e[38;5;5m\]\u"
     else
         # echo -n "\[$(tput setaf 1)\]\1"
-        echo -n "\[\e[38;5;1m\]\1"
+        echo -n "\[\e[38;5;1m\]\u"
     fi
 }
 
@@ -112,7 +108,22 @@ goedel_prompt() {
     # construct the prompt from all the earlier components
     local iz_prompt="$iz_bold$(user_prompt)$(exitstatus_prompt "$GOEDEL_EXIT_STATUS")$(host_prompt)$(shlvl_prompt)$(dir_prompt)$(apparix_prompt)$iz_reset"
 
-    PS1=$'\n'"$iz_prompt"$'\n'" $iz_bold\[\e[38;5;7m\]->$iz_reset "
+    # Inside here, I put the prompt to use. I've personally got it on two lines,
+    # and padded by a line in front, as that's what I've gotten used to from my
+    # zsh P10K prompt, but this is optional.
+
+    # the first branch only works if you sourced git-prompt.sh earlier.
+    if silent command -v __git_ps1; then
+        # This last part uses __git_ps1 to inject some information about dirty
+        # states and branches when in a git repository. This can be made much
+        # prettier using just vanilla zsh, with the vcs_info autoload function.
+
+        # The two arguments that __git_ps1 takes are a prefix to the git part of
+        # the prompt, and a suffix. I leave the suffic as just a space.
+        __git_ps1 $'\n'"$iz_prompt" $'\n'" $iz_bold\[\e[38;5;7m\]->$iz_reset "
+    else
+        PS1=$'\n'"$iz_prompt"$'\n'" $iz_bold\[\e[38;5;7m\]->$iz_reset "
+    fi
 }
 
 PROMPT_COMMAND='goedel_prompt'

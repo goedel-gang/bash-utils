@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+export APPARIXHOME="$(realpath "$(dirname "$0")")"
+echo "demo zsh with apparix home $APPARIXHOME"
+ZDOTDIR="$APPARIXHOME" exec zsh

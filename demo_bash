@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+export APPARIXHOME="$(realpath "$(dirname "$0")")"
+echo "demo bash with apparix home $APPARIXHOME"
+exec bash --rcfile "$APPARIXHOME/bashrc"
