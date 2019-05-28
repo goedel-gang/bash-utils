@@ -1,5 +1,16 @@
 # shellcheck disable=SC2155,SC2181,SC2016 shell=bash
-# vim: ft=sh ts=4 sw=0 sts=-1 et
+# vim: ts=4 sw=0 sts=-1 et
+
+#   ___  __  __  ____    ___   ____  _____   _     _   _  _____  _
+#  |_ _||  \/  ||  _ \  / _ \ |  _ \|_   _| / \   | \ | ||_   _|| |
+#   | | | |\/| || |_) || | | || |_) | | |  / _ \  |  \| |  | |  | |
+#   | | | |  | ||  __/ | |_| ||  _ <  | | / ___ \ | |\  |  | |  |_|
+#  |___||_|  |_||_|     \___/ |_| \_\ |_|/_/   \_\|_| \_|  |_|  (_)
+#
+# This fork of apparix is not compatible with older Bashes, as it relies on you
+# having sourced bash-completion (https://github.com/scop/bash-completion),
+# which needs Bash 4.1.
+
 
 # ignore errors about:
 # - testing $?, because that's useful when you have branches
@@ -106,9 +117,6 @@
 #  code, subsequently improving and standardising the bash completion code, and
 #  suggesting the name apparish.
  #
-
-# This fork of apparix is not compatible with older Bashes, and relies on you
-# having sourced bash-completion
 
 # TODO: allow commas and newlines in directory names
 # particular corollary is that amibm and probably some other break quite badly
@@ -462,6 +470,8 @@ if [[ -n "$BASH_VERSION" ]]; then
     # uses _filedir, so archeological bash is unsupported
     function _apparix_comp_file() {
         local caller="$1"
+        # this is used by _filedir
+        # shellcheck disable=SC2034
         local cur="$2"
         if elemOf "$caller" "${APPARIX_DIR_FUNCTIONS[@]}"; then
             _filedir -d

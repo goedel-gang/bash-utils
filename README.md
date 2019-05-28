@@ -1,15 +1,43 @@
 # bash-utils
 
+     ___  __  __  ____    ___   ____  _____   _     _   _  _____  _
+    |_ _||  \/  ||  _ \  / _ \ |  _ \|_   _| / \   | \ | ||_   _|| |
+     | | | |\/| || |_) || | | || |_) | | |  / _ \  |  \| |  | |  | |
+     | | | |  | ||  __/ | |_| ||  _ <  | | / ___ \ | |\  |  | |  |_|
+    |___||_|  |_||_|     \___/ |_| \_\ |_|/_/   \_\|_| \_|  |_|  (_)
+
+This fork of apparix is not compatible with older Bashes, as it relies on you
+having sourced `bash-completion` (https://github.com/scop/bash-completion),
+which needs Bash 4.1+.
+
 ## Apparix
 
 Directory bookmarking system. It used to be implemented in C, shipped with bash
-wrapper functions and completion code. This is now legacy, but it is provided in
-`.bourne_apparix`.
+wrapper functions and completion code. This is now legacy, and should be
+retrieved from older commits (see the master branch).
 
-The new pure shell implementation is in `.bourne-apparish`.
+The new pure shell implementation is in `appari.sh`.
+
+Apparix is currently still quite weak particularly to newlines and commas in
+directory names, as is its completion as it delegates to `_filedir` from
+`bash-completion`. If you try any funny business, it will likely just result in
+some truncation, which you can fix by removing the spurious lines from
+`$APPARIXRC` manually.
 
 There is also a reference prompt that can talk to apparix, if you've got it set
-up, in `.bashpromptrc`.
+up, in `prompt.bash`. A minimal demo `bashrc` to call both is provided. You can
+try it out by running `./demo_bash`.
+
+Similarly, I have included a `prompt.zsh`, `zshrc` and `./demo_zsh`. See below
+screenshot for what they should hopefully look like.
+
+A recommendation for Zsh users that fills a similar niche is the Zsh native
+`hash -d` command (`man zshall`), which provides directory hashes with a prefix
+based syntax that work anywhere that Zsh does file expansion. function to work.
+It is probably useful to write a similar bookmarking system that persists all
+your directory hashes to a file somewhere.
+
+![screenshot](https://github.com/goedel-gang/bash-utils/blob/twenty-first-century/prompt_screenshot.png)
 
 ## bash-myutils
 
