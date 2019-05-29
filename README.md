@@ -5,7 +5,10 @@
     ██ ██ ████ ██ ██████  ██    ██ ██████     ██    ███████ ██ ██  ██    ██    ██ 
     ██ ██  ██  ██ ██      ██    ██ ██   ██    ██    ██   ██ ██  ██ ██    ██       
     ██ ██      ██ ██       ██████  ██   ██    ██    ██   ██ ██   ████    ██    ██ 
-                                                                              
+
+This would look better if Github would just use a monospace font with normal
+vertical spacing. Oh well.
+
 This fork of apparix is not compatible with older Bashes, as it relies on you
 having sourced `bash-completion` (https://github.com/scop/bash-completion),
 which needs Bash 4.1+.
