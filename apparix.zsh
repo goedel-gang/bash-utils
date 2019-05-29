@@ -37,16 +37,30 @@
 # directory hashes, so if you were using it for something else, either do this
 # through zapparix or think of another solution.
 
+# I know that many of these double quotes are probably redundant, but I've been
+# writing a lot of Bash and don't have the mental capacity to keep two things
+# separate. I might change it sometime, or if whoever is reading this really
+# desparately cares, go wild!
+
 ZAPPARIXHOME="${ZAPPARIXHOME:=$HOME/.config/zapparix}"
 mkdir -p "$ZAPPARIXHOME"
 ZAPPARIXRC="${ZAPPARIXRC:=$ZAPPARIXHOME/zapparixrc}"
 touch "$ZAPPARIXRC"
 
+typeset -ga ZAPP_DIFF_CMD
+
+# check if diff has colours
+if command diff --color=always <(echo abc) <(echo abc) 2>/dev/null; then
+    ZAPP_DIFF_CMD=( diff --color=always )
+else
+    ZAPP_DIFF_CMD=( diff )
+fi
+
 alias via='"${EDITOR:-vim}" "$ZAPPARIXRC"'
 
 # indicate differences between $ZAPPARIXRC" and "$ZAPPARIXRC.new"
 zapparix_change() {
-    { ! command diff --color=always "$ZAPPARIXRC" "$ZAPPARIXRC.new" } || \
+    { ! "${ZAPP_DIFF_CMD[@]}" "$ZAPPARIXRC" "$ZAPPARIXRC.new" } || \
         { >&2 echo "no change"; return 1 }
 }
 
@@ -72,8 +86,9 @@ bm() {
             return 1
         fi
     else
-        hash -dL | sed -e "s/^hash -d\( --\)\?//" -e "s/=/\t/" | \
-            column -t -s $'\t' -N mark,target -R 1
+        {printf 'mark\ttarget\n';
+         hash -dL | sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'} | \
+            column -t -s $'\t'
     fi
 }
 
@@ -103,7 +118,7 @@ unbm() {
         # probably this should be done with awk or perl or something
         quot_pwd="$(hash -dL | \
             command grep '^hash -d\( --\)\? _GOEDEL_TEST=' | \
-            command sed 's/^hash -d\( --\)\? _GOEDEL_TEST=//')"
+            command sed -E 's/^hash -d( --)? _GOEDEL_TEST=//')"
         command sed 's#$#//#g' "$ZAPPARIXRC" | \
                 command grep -v -F "=$quot_pwd//" | \
                 command sed 's#//$##g' \
