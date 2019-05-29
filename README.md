@@ -39,9 +39,9 @@ any backslashes)).
 
 A recommendation for Zsh users that fills a similar niche is the Zsh native
 `hash -d` command (`man zshall`), which provides directory hashes with a prefix
-based syntax that work anywhere that Zsh does file expansion. function to work.
-It is probably useful to write a similar bookmarking system that persists all
-your directory hashes to a file somewhere.
+based syntax that work anywhere that Zsh does file expansion. It is probably
+useful to write a similar bookmarking system that persists all your directory
+hashes to a file somewhere.
 
 ![screenshot](https://github.com/goedel-gang/bash-utils/blob/twenty-first-century/prompt_screenshot.png)
 
