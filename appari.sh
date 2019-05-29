@@ -163,7 +163,7 @@ else
 fi
 
 if ! silent command -v via; then
-    alias via='"$EDITOR" "$APPARIXRC"'
+    alias via='vi "$APPARIXRC"'
 else
     >&2 echo "Apparish: not aliasing via"
 fi
@@ -184,7 +184,7 @@ function apparish() {
         return
     fi
     local mark="$1"
-    local list="$(grep -F ",$mark," "$APPARIXRC" "$APPARIXEXPAND")"
+    local list="$(command grep -F ",$mark," "$APPARIXRC" "$APPARIXEXPAND")"
     if [[ -z "$list" ]]; then
         >&2 echo "Mark '$mark' not found"
         return 1
@@ -203,7 +203,7 @@ function apparix-list() {
         return 1
     fi
     local mark="$1"
-    grep -F ",$mark," -- "$APPARIXRC" "$APPARIXEXPAND" | cut -f 3 -d ','
+    command grep -F ",$mark," -- "$APPARIXRC" "$APPARIXEXPAND" | cut -f 3 -d ','
 }
 
 function bm() {
@@ -254,7 +254,7 @@ function portal-expand() {
     local parentdir
     rm -f -- "$APPARIXEXPAND"
     true > "$APPARIXEXPAND"
-    grep '^e,' -- "$APPARIXRC" | cut -f 2 -d , | \
+    command grep '^e,' -- "$APPARIXRC" | cut -f 2 -d , | \
         while read -r parentdir; do
             # run in an explicit bash subshell to be able to locally set the
             # right options
@@ -331,16 +331,16 @@ function als() {
 }
 
 # apparix search bookmark
-# TODO: fix when cwd has newlines in
+# TODO: does this still work
 function amibm() {
-    grep -- ",$(grepsanitise "$PWD")$" "$APPARIXRC" | \
+    command grep -- ",$(grepsanitise "$PWD")$" "$APPARIXRC" | \
         cut -f 2 -d ',' | paste -s -d ' ' -
 }
 
 # apparix search bookmark
 function bmgrep() {
     pat="${1?Need a pattern to search}"
-    grep -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' | tr ',' '\t' | column -t
+    command grep -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' | tr ',' '\t' | column -t
 }
 
 # apparix get; get something from a mark
@@ -484,10 +484,10 @@ if [[ -n "$BASH_VERSION" ]]; then
     # this is currently case sensitive. Good? Bad? Who knows!
     function _apparix_compgen_bm() {
         cut -f2 -d, -- "$APPARIXRC" "$APPARIXEXPAND" | sort |\
-            \grep -i -- "^$(grepsanitise "$1")"
+            command grep -i -- "^$(grepsanitise "$1")"
         if [[ -n "$1" ]]; then
             cut -f2 -d, -- "$APPARIXRC" "$APPARIXEXPAND" | sort |\
-                \grep -i -- "^..*$(grepsanitise "$1")"
+                command grep -i -- "^..*$(grepsanitise "$1")"
         fi
     }
 
