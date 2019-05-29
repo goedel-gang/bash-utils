@@ -1,10 +1,10 @@
-# FIGMENTIZE: zapparix
 #                                               .__
 # _____________   ______  ______ _____  _______ |__|___  ___
 # \___   /\__  \  \____ \ \____ \\__  \ \_  __ \|  |\  \/  /
 #  /    /  / __ \_|  |_> >|  |_> >/ __ \_|  | \/|  | >    <
 # /_____ \(____  /|   __/ |   __/(____  /|__|   |__|/__/\_ \
 #       \/     \/ |__|    |__|        \/                  \/
+# FIGMENTIZE: zapparix
 
 # Thin wrapper around Zsh's directory hashing, to provide an Apparix-like
 # persistent bookmarking system.
