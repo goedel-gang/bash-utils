@@ -35,7 +35,6 @@
 #  Quick Guide:
 #  -  save this file in $HOME/.bourne-apparish
 #  -  issue 'source $HOME/.bourne-apparish'
-#  -  issue 'apparix-init'
 #  -  go to a directory and issue 'bm foo'
 #  -  you can now go to that directory by issuing 'to foo'
 #  -  try tab completion and command substitution, see the examples below.
@@ -44,13 +43,12 @@
 #  partly in C.  For both systems the bookmarking commands are implemented as
 #  shell functions.  The names of these functions are the same between the two
 #  implementations and the function definitions are very similar.  The apparix
-#  shell functions invoke a C executable. Apparish uses another shell funtion
-#  to mimic this C program and apparish provides two additional funcctions,
-#  apparix-init and apparix-list. The pivotal commands however are 'bm'
-#  (bookmark) and 'to' (go to mark). You can change from apparix to apparish
-#  and vice versa, as they use the same resource files.
+#  shell functions invoke a C executable. Apparish uses another shell funtion to
+#  mimic this C program and apparish provides two additional functions, and
+#  apparix-list. The pivotal commands however are 'bm' (bookmark) and 'to' (go
+#  to mark). You can change from apparix to apparish and vice versa, as they use
+#  the same resource files.
 #
-#     apparix-init            initialise apparix (needed only once)
 #  ---
 #     bm <tag>                create bookmark <tag> for current directory
 #  ---
@@ -125,14 +123,14 @@
 # very hollow wrapper, to prevent the constant checks for bash/zsh and make it
 # easier to extend to other shells.
 
-# TODO: better error messages if not apparix-init, or better yet, apparix-init
-# automatically
-
 APPARIXHOME="${APPARIXHOME:=$HOME}"
 mkdir -p "$APPARIXHOME"
 APPARIXRC="${APPARIXRC:=$APPARIXHOME/.apparixrc}"
 APPARIXEXPAND="${APPARIXEXPAND:=$APPARIXHOME/.apparixexpand}"
 APPARIXLOG="${APPARIXLOG:=$APPARIXHOME/.apparixlog}"
+
+touch "$APPARIXRC"
+touch "$APPARIXEXPAND"
 
 APPARIX_FILE_FUNCTIONS=( a ae av aget toot apparish ) # Huffman (remove a)
 APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
@@ -163,20 +161,10 @@ else
 fi
 
 if ! silent command -v via; then
-    alias via='"${EDITOR:-vim}" "$APPARIXRC"'
+    alias via='vi "$APPARIXRC"'
 else
     >&2 echo "Apparish: not aliasing via"
 fi
-
-function apparix-init() {
-    already=""
-    if [[ -e "$APPARIXRC" && -e "$APPARIXEXPAND" ]]; then
-        already=" already"
-    fi
-    true >> "$APPARIXRC"
-    true >> "$APPARIXEXPAND"
-    echo "Apparish is up and running$already"
-}
 
 function apparish() {
     if [[ 0 == "$#" ]]; then
@@ -410,7 +398,6 @@ function apparish_ls() {
                           mark names)
   portal-expand           Re-expand all portals
   apparix-list MARK       List all targets for bookmark mark
-  apparix-init            Use one time after installing apparix
 EOH
 }
 
@@ -477,7 +464,6 @@ if [[ -n "$BASH_VERSION" ]]; then
             >&2 echo "Unknown caller: Izaak has probably messed something up"
             return 1
         fi
-
     }
 
     # generate completions for a bookmark
