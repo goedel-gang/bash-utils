@@ -57,12 +57,15 @@ Even though I say so myself, Zapparix provides some pretty nicely formatted
 output.
 
 ### commands
-command | effect
----+---
-`bm <mark>` | bookmark the cwd with the name `<mark>`
-`bm` | show all bookmarks
-`unbm <mark>` | remove the bookmark `<mark>`
-`unbm` | remove any bookmarks to the current directory
+
++---+---+
+| command | effect |
+|---+---+
+| `bm <mark>` | bookmark the cwd with the name `<mark>` |
+| `bm` | show all bookmarks |
+| `unbm <mark>` | remove the bookmark `<mark>` |
+| `unbm` | remove any bookmarks to the current directory |
++---+---+
 
 Note that hashed directories are accessed by prefixing the hash ("bookmark
 name") with a tilde `~`. So a sample session might look like this (this is a
