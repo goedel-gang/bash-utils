@@ -11,7 +11,8 @@ vertical spacing. Oh well.
 
 This fork of apparix is not compatible with older Bashes, as it relies on you
 having sourced `bash-completion` (https://github.com/scop/bash-completion),
-which needs Bash 4.1+.
+which needs Bash 4.1+. Fret not, the `master` branch is still more or less
+compatible, and gets updates every now and then (when I feel like it).
 
 ## Apparix
 
