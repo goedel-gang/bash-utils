@@ -89,7 +89,12 @@ two-line zsh prompt):
      ~doc
     ❯
 
+Here is a screenshot with colours, and a sample bookmark listing
+
 ![screenshot](https://github.com/goedel-gang/bash-utils/blob/twenty-first-century/zapparix_screenshot.png)
+
+There is a similar demo shell in `zdemo/demo_zsh`, which is about three lines of
+config setting up a prompt and sourcing zapparix.
 
 See the source of `apparix.zsh` for maybe some more information.
 

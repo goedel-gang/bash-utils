@@ -1,0 +1,3 @@
+source "$ZAPPARIXHOME/apparix.zsh"
+bm demo
+PROMPT='%F{cyan}%/ %F{blue}(%~)%f '

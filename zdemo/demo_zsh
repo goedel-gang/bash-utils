@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+export ZAPPARIXHOME="$(realpath "$(dirname "$0")")"
+echo "demo zsh with zapparix home $ZAPPARIXHOME"
+ZDOTDIR="$ZAPPARIXHOME" exec zsh
