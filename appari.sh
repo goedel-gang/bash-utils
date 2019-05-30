@@ -415,7 +415,7 @@ function amibm() {
         sed 's#$#//#' | \
         command grep -F -- ",$target//" | \
         command sed "s/.*/>[p]/"
-    ) | command paste -s -d ' ' || true
+    ) | command paste -s -d ' ' - || true
     # always return successfully, even if grep doesn't find anything
 }
 
