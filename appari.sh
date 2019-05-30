@@ -150,7 +150,6 @@ APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
 # https://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
 function apparix_serialise() {
     ( command cat; command echo -n '#' ) | command sed 's/%/%%/g
-                 s/'$'\t''/%t/g
                  s/,/%c/g' | \
         command awk 'BEGIN { ORS="%n" } { print $0 }' | \
         command sed 's/#%n$//'
@@ -170,7 +169,6 @@ function apparix_deserialise() {
     # https://stackoverflow.com/questions/13325138/why-does-sed-add-a-new-line-in-osx
     command perl -pe 's/%%/'"$GOEDEL_PLACEHOLDER"'/g;
                       s/%c/,/g;
-                      s/%t/'$'\t''/g;
                       s/%n/\'$'\n''/g;
                       s/'"$GOEDEL_PLACEHOLDER"'/%/g'
     echo -n '#'
@@ -241,23 +239,15 @@ function apparish() {
         # confuse column, by reintroducing tabs and newlines
         echo "Bookmarks"
         grep '^j' -- "$APPARIXRC" | command cut -d, -f2,3 | \
-            while IFS='' read -r line; do
-                local name="$(<<< "$line" command cut -d, -f1)"
-                local target="$(<<< "$line" command cut -d, -f2)"
-                printf '\t%s\t%s\n' "$name" "$target"
-            done | command column -t -s $'\t'
+            command column -t -s , | \
+            sed 's/^/    /'
         echo "Portals"
-        grep '^e' -- "$APPARIXRC" | cut -d, -f2 | \
-            while IFS='' read -r line; do
-                printf '\t%s\n' "$line"
-            done | command column -t -s $'\t'
+        grep '^e' -- "$APPARIXRC" | command cut -d, -f2 | \
+            command column -t -s , | \
+            sed 's/^/    /'
         echo "Expanded bookmarks"
-        cut -d, -f2,3 "$APPARIXEXPAND" | \
-            while IFS='' read -r line; do
-                local name="$(<<< "$line" command cut -d, -f1)"
-                local target="$(<<< "$line" command cut -d, -f2)"
-                printf '\t%s\t%s\n' "$name" "$target"
-            done | command column -t -s $'\t'
+        command cut -d, -f2,3 "$APPARIXEXPAND" | command column -t -s , | \
+            sed 's/^/    /'
         return
     fi
     local result
