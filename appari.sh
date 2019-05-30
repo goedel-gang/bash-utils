@@ -166,10 +166,10 @@ function apparix_deserialise() {
     # BSD sed just bluntly adds a newline at the end.
     # https://stackoverflow.com/questions/13325138/why-does-sed-add-a-new-line-in-osx
     command perl -pe 's/%%/'"$GOEDEL_PLACEHOLDER"'/g;
-                 s/%c/,/g;
-                 s/%t/'$'\t''/g;
-                 s/%n/\'$'\n''/g;
-                 s/'"$GOEDEL_PLACEHOLDER"'/%/g'
+                      s/%c/,/g;
+                      s/%t/'$'\t''/g;
+                      s/%n/\'$'\n''/g;
+                      s/'"$GOEDEL_PLACEHOLDER"'/%/g'
     echo -n '#'
 }
 
