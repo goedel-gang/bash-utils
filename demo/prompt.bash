@@ -87,10 +87,17 @@ host_prompt() {
 apparix_prompt() {
     # assume that amibm has empty output if it's unsuccessful, to avoid having
     # to re-run it
-    local goedel_bm="$(amibm)"
-    if [[ -n "$goedel_bm" ]]; then
-        # echo -n " \[$(tput setaf 4)\]($goedel_bm)"
-        echo -n " \[\e[38;5;4m\]($goedel_bm)"
+    # Check if apparix exists by checking if there is an amibm command.
+    # Alternative might be to check if APPARIXHOME exists but this is I think
+    # nicer
+    if silent command -v amibm; then
+        # escape backticks and dollars so that bash doesn't get confused about
+        # command substitution
+        local goedel_bm="$(amibm | sed 's/[$`]/\&/g')"
+        if [[ -n "$goedel_bm" ]]; then
+            # echo -n " \[$(tput setaf 4)\]($goedel_bm)"
+            echo -n " \[\e[38;5;4m\]($goedel_bm)"
+        fi
     fi
 }
 
