@@ -1,4 +1,4 @@
-# shellcheck disable=SC2155,SC2181,SC2016 shell=bash
+# shellcheck disable=SC2016 shell=bash
 # vim: ts=4 sw=0 sts=-1 et
 
 #   ___  __  __  ____    ___   ____  _____   _     _   _  _____  _
@@ -13,10 +13,8 @@
 
 
 # ignore errors about:
-# - testing $?, because that's useful when you have branches
-# - declaring and assigning at the same time because I know what I'm doing
-#   (fingers crossed)
-# - unexpanded substitutions in single quotes for similar reasons
+# - unexpanded substitutions in single quotes, because sometimes you need to
+#   delay command substitution
 
 # Vim modeline to try and keep the indentation in check.
 
@@ -132,16 +130,41 @@ APPARIXLOG="${APPARIXLOG:=$APPARIXHOME/.apparixlog}"
 touch "$APPARIXRC"
 touch "$APPARIXEXPAND"
 
-APPARIX_FILE_FUNCTIONS=( a ae av aget toot apparish ) # Huffman (remove a)
+# Huffman (remove a in the next line)
+APPARIX_FILE_FUNCTIONS=( a ae av aget toot apparish apparish_newlinesafe )
 APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
 
-# these are some helper functions. With my system they are mostly redundant
-# copies of functions I already have defined, but I aim to make this file
-# stand-alone.
+# Serialise stdin so that it can be stored safely in a CSV file. This
+# involves escaping commas and newlines. It should be pretty straightforwardly
+# extensible to also escape other types of character.
+# It's currently a bit hacky in terms of using multiple seds and awks to bash
+# things into the right format. Replacing newlines turns out to be quite
+# complicated, and I do this with awk. It turns out it's pretty hard to respect
+# trailing newlines when you're using line-based text processing utilities, so I
+# add a trailing hash character and then strip it at the end.
+# https://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
+function apparix_serialise() {
+    ( cat; echo -n '#' ) | command sed 's/%/%%/g
+                 s/'$'\t''/%t/g
+                 s/,/%c/g' | \
+        command awk 'BEGIN { ORS="%n" } { print $0 }' | \
+        command sed 's/#%n$//'
+}
 
-# sanitise $1 so that it becomes suitable for use with your basic grep
-function grepsanitise() {
-    sed 's/[].*^$]\|\[/\\&/g' <<< "$1"
+# https://stackoverflow.com/questions/723157/how-to-insert-a-newline-in-front-of-a-pattern
+# Makes use of the dummy placeholder _GOEDEL_PLACEHOLDER_, so please don't put
+# that in any of your directories or tags, or if you do, think of a better
+# placeholder.
+# https://unix.stackexchange.com/questions/17732/where-has-the-trailing-newline-char-gone-from-my-command-substitution
+# This adds a trailing character "#" to preserve any trailing newlines you had.
+# Remove it with the parameter expansion ${var%#}
+function apparix_deserialise() {
+    command sed 's/%%/_GOEDEL_PLACEHOLDER_/g
+                 s/%c/,/g
+                 s/%t/'$'\t''/g
+                 s/%n/\'$'\n''/g
+                 s/_GOEDEL_PLACEHOLDER_/%/g'
+    echo -n '#'
 }
 
 # vim-like: totally silence the given command, with less of the tedium. doesn't
@@ -149,7 +172,7 @@ function grepsanitise() {
 # black magic: "$@" expands to each argument as a separate word.
 # gotcha: this won't expand any aliases you have. This is probably preferred
 # functionality anyway, though (at least for me)
-silent() {
+function silent() {
     "$@" > /dev/null 2> /dev/null
 }
 
@@ -166,22 +189,69 @@ else
     >&2 echo "Apparish: not aliasing via"
 fi
 
+# Generate paths from bookmarks and suffix paths, but append a # sign. This
+# guards trailing newlines in command substitution, but isn't very nice to look
+# at or use manually.
+# This is wrapped by apparish, which strips the # sign. This makes apparish more
+# usable in a command line. Apparish also lists bookmarks when given no
+# arguments.
+function apparish_newlinesafe() {
+    if [[ 0 == "$#" ]]; then
+        >&2 echo "Apparix: need arguments"
+        return 1
+    else
+        local mark="$(printf "%s" "$1" | apparix_deserialise)"
+        mark="${mark%#}"
+        local list="$(command grep -F -- "j,$mark," "$APPARIXRC" "$APPARIXEXPAND")"
+        if [[ -z "$list" ]]; then
+            >&2 echo "Mark '$1' not found"
+            return 1
+        fi
+        local target="$(<<< "$list" command tail -n 1 | command cut -f3 -d,)"
+        local target="$(printf "%s" "$target" | apparix_deserialise)"
+        target="${target%#}"
+        if [[ 2 == "$#" ]]; then
+            printf "%s/%s#" "$target" "$2"
+        elif [[ 1 == "$#" ]]; then
+            printf "%s#" "$target"
+        else
+            # do not fail gracefully, to prevent hard to find errors
+            >&2 echo "Apparix: too many arguments. Usage: [command] TAG PATH"
+            return 1
+        fi
+    fi
+}
+
 function apparish() {
     if [[ 0 == "$#" ]]; then
-        cat -- "$APPARIXRC" "$APPARIXEXPAND" | tr ', ' '\t_' | column -t
+        # don't do any deserialisation, because that will mostly just serve to
+        # confuse column, by reintroducing tabs and newlines
+        echo "Bookmarks"
+        grep '^j' -- "$APPARIXRC" | command cut -d, -f2,3 | \
+            while IFS='' read -r line; do
+                local name="$(<<< "$line" command cut -d, -f1)"
+                local target="$(<<< "$line" command cut -d, -f2)"
+                printf '\t%s\t%s\n' "$name" "$target"
+            done | command column -t -s $'\t'
+        echo "Portals"
+        grep '^e' -- "$APPARIXRC" | cut -d, -f2 | \
+            while IFS='' read -r line; do
+                printf '\t%s\n' "$line"
+            done | command column -t -s $'\t'
+        echo "Expanded bookmarks"
+        cut -d, -f2,3 "$APPARIXEXPAND" | \
+            while IFS='' read -r line; do
+                local name="$(<<< "$line" command cut -d, -f1)"
+                local target="$(<<< "$line" command cut -d, -f2)"
+                printf '\t%s\t%s\n' "$name" "$target"
+            done | command column -t -s $'\t'
         return
     fi
-    local mark="$1"
-    local list="$(command grep -F ",$mark," "$APPARIXRC" "$APPARIXEXPAND")"
-    if [[ -z "$list" ]]; then
-        >&2 echo "Mark '$mark' not found"
-        return 1
-    fi
-    local target="$( (tail -n 1 | cut -f 3 -d ',') <<< "$list")"
-    if [[ 2 == "$#" ]]; then
-        echo "$target/$2"
+    local result
+    if result="$(apparish_newlinesafe "$@")"; then
+        echo "${result%#}"
     else
-        echo "$target"
+        return 1
     fi
 }
 
@@ -191,7 +261,7 @@ function apparix-list() {
         return 1
     fi
     local mark="$1"
-    command grep -F ",$mark," -- "$APPARIXRC" "$APPARIXEXPAND" | cut -f 3 -d ','
+    command grep -F -- ",$mark," "$APPARIXRC" "$APPARIXEXPAND" | cut -f 3 -d ','
 }
 
 function bm() {
@@ -216,17 +286,12 @@ function bm() {
 }
 
 function to() {
-    if [[ 2 == "$#" ]]; then
-        loc="$(apparish "$1" "$2")"
-    elif [[ 1 == "$#" ]]; then
-        if [[ "$1" == '-' ]]; then
-            loc="-"
-        else
-            loc="$(apparish "$1")"
-        fi
+    local loc
+    if [[ "$1" == '-' ]]; then
+        loc="-"
     else
-        >&2 echo "Usage: to MARK [SUBDIR1/[SUBDIR2/[etc]]]"
-        return 1
+        loc="$(apparish_newlinesafe "$@")"
+        loc="${loc%#}"
     fi
     if [[ "$?" == 0 ]]; then
         cd -- "$loc" || return 1
@@ -243,7 +308,7 @@ function portal-expand() {
     rm -f -- "$APPARIXEXPAND"
     true > "$APPARIXEXPAND"
     command grep '^e,' -- "$APPARIXRC" | cut -f 2 -d , | \
-        while read -r parentdir; do
+        while IFS='' read -r parentdir; do
             # run in an explicit bash subshell to be able to locally set the
             # right options
             parentdir="$parentdir" APPARIXEXPAND="$APPARIXEXPAND" bash <<EOF
@@ -273,14 +338,9 @@ function whence() {
 }
 
 function toot() {
-    if [[ 3 == "$#" ]]; then
-        file="$(apparish "$1" "$2")/$3"
-    elif [[ 2 == "$#" ]]; then
-        file="$(apparish "$1")/$2"
-    else
-        >&2 echo "toot tag dir file OR toot tag file"
-        return 1
-    fi
+    local file
+    file="$(apparish_newlinesafe "$@")"
+    file="${file%#}"
     if [[ "$?" == 0 ]]; then
         "${EDITOR:-vim}" "$file"
     fi
@@ -296,86 +356,94 @@ function rme() {
 
 # apparix listing of directories of mark
 function ald() {
-    if [[ 2 == "$#" ]]; then
-        loc="$(apparish "$1" "$2")"
-    elif [[ 1 == "$#" ]]; then
-        loc="$(apparish "$1")"
-    fi
-    if [[ "$?" == 0 ]]; then
-        ls -d "$loc"/*
+    local loc
+    if loc="$(apparish_newlinesafe "$@")"; then
+        loc="${loc%#}"
+        command ls -d "$loc"/*
+    else
+        return 1
     fi
 }
 
 # apparix ls of mark
 function als() {
-    if [[ 2 == "$#" ]]; then
-        loc="$(apparish "$1" "$2")"
-    elif [[ 1 == "$#" ]]; then
-        loc="$(apparish "$1")"
-    fi
-    if [[ "$?" == 0 ]]; then
+    local loc
+    if loc="$(apparish_newlinesafe "$@")"; then
+        loc="${loc%#}"
         ls "$loc"
+    else
+        return 1
     fi
 }
 
-# apparix search bookmark
-# TODO: does this still work
+# apparix search if current directory is a bookmark or portal
 function amibm() {
-    command grep -- ",$(grepsanitise "$PWD")$" "$APPARIXRC" | \
-        cut -f 2 -d ',' | paste -s -d ' ' -
+    target="$(printf "%s" "$PWD" | apparix_serialise)"
+    (
+    command grep "^j" "$APPARIXRC" | command cut -d, -f2,3 | \
+        sed 's#$#//#' | \
+        command grep -F -- ",$target//" | \
+        command cut -f1 -d,
+    command grep "^e" "$APPARIXRC" | command cut -d, -f2 | \
+        sed 's#$#//#' | \
+        command grep -Fx -- "$target//" | \
+        command sed "s/.*/[p]/"
+    command cut -d, -f2,3 "$APPARIXEXPAND" | \
+        sed 's#$#//#' | \
+        command grep -F -- ",$target//" | \
+        command sed "s/.*/>[p]/"
+    ) | command paste -s -d ' ' || true
+    # always return successfully, even if grep doesn't find anything
 }
 
 # apparix search bookmark
 function bmgrep() {
     pat="${1?Need a pattern to search}"
-    command grep -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' | tr ',' '\t' | column -t
+    command grep -i -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' | \
+        column -t -s,
 }
 
 # apparix get; get something from a mark
 function aget() {
-    if [[ 2 == "$#" ]]; then
-        loc="$(apparish "$1" "$2")"
-    elif [[ 1 == "$#" ]]; then
-        loc="$(apparish "$1")"
-    fi
-    if [[ "$?" == 0 ]]; then
+    local loc
+    if loc="$(apparish_newlinesafe "$@")"; then
+        loc="${loc%#}"
         cp "$loc" .
+    else
+        return 1
     fi
 }
 
 # apparix mkdir in mark
 function amd() {
-    if [[ 2 == "$#" ]]; then
-        loc="$(apparish "$1" "$2")"
-    elif [[ 1 == "$#" ]]; then
-        loc="$(apparish "$1")"
-    fi
-    if [[ "$?" == 0 ]]; then
+    local loc
+    if loc="$(apparish_newlinesafe "$@")"; then
+        loc="${loc%#}"
         mkdir -p -- "$loc"
+    else
+        return 1
     fi
 }
 
 # apparix edit of file in mark or subdirectory of mark
 function av() {
-    if [[ 2 == "$#" ]]; then
-        loc="$(apparish "$1" "$2")"
-    elif [[ 1 == "$#" ]]; then
-        loc="$(apparish "$1")"
-    fi
-    if [[ "$?" == 0 ]]; then
+    local loc
+    if loc="$(apparish_newlinesafe "$@")"; then
+        loc="${loc%#}"
         view -- "$loc"
+    else
+        return 1
     fi
 }
 
 # apparix edit of file in mark or subdirectory of mark
 function ae() {
-    if [[ 2 == "$#" ]]; then
-        loc="$(apparish "$1" "$2")"
-    elif [[ 1 == "$#" ]]; then
-        loc="$(apparish "$1")"
-    fi
-    if [[ "$?" == 0 ]]; then
+    local loc
+    if loc="$(apparish_newlinesafe "$@")"; then
+        loc="${loc%#}"
         "${EDITOR:-vim}" "$loc"
+    else
+        return 1
     fi
 }
 
@@ -402,8 +470,6 @@ EOH
 }
 
 if [[ -n "$BASH_VERSION" ]]; then
-    # bash specific helper functions
-
     # assert that bash version is at least $1.$2.$3
     version_assert() {
         for i in {1..3}; do
@@ -416,29 +482,6 @@ if [[ -n "$BASH_VERSION" ]]; then
         done
         return 0
     }
-
-    # define a function to read lines from a file into an array
-    # https://github.com/koalaman/shellcheck/wiki/SC2207
-    if silent version_assert 4 0 0; then
-        function read_array() {
-            mapfile -t goedel_array < "$1"
-        }
-    elif silent version_assert 3 0 0; then
-        function read_array() {
-            goedel_array=()
-            while IFS='' read -r line; do
-                goedel_array+=("$line");
-            done < "$1"
-        }
-    else
-        >&2 echo "really, bash 2 isn't cool enough to run apparix"
-        function read_array() {
-            local IFS=$'\n'
-            # this is a bad fallback implementation on purpose
-            # shellcheck disable=SC2207
-            goedel_array=( $(cat -- "$1") )
-        }
-    fi
 
     # https://stackoverflow.com/questions/3685970/check-if-a-bash-array-...
     # contains-a-value
@@ -467,7 +510,7 @@ if [[ -n "$BASH_VERSION" ]]; then
     }
 
     # generate completions for a bookmark
-    # this is currently case sensitive. Good? Bad? Who knows!
+    # this is currently case insensitive. Good? Bad? Who knows!
     function _apparix_compgen_bm() {
         cut -f2 -d, -- "$APPARIXRC" "$APPARIXEXPAND" | sort |\
             command grep -i -- "^$(grepsanitise "$1")"
@@ -487,8 +530,10 @@ if [[ -n "$BASH_VERSION" ]]; then
                 xargs -d $'\n' printf "%q\n")
             COMPREPLY=( "${goedel_array[@]}" )
         else
-            local cur_file="${COMP_WORDS[2]}"
-            local app_dir="$(apparish "$tag" 2>/dev/null)"
+            local cur_file app_dir
+            cur_file="${COMP_WORDS[2]}"
+            app_dir="$(apparish_newlinesafe "$tag" 2>/dev/null)"
+            app_dir="${app_dir%#}"
             if [[ -d "$app_dir" ]]; then
                 # can't run in subshell as _apparix_comp_file modifies COMREPLY.
                 # Just hope that nothing goes wrong, basically
