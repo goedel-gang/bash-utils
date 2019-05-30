@@ -93,7 +93,7 @@ apparix_prompt() {
     if silent command -v amibm; then
         # escape backticks and dollars so that bash doesn't get confused about
         # command substitution
-        local goedel_bm="$(amibm | sed 's/[$`]/\&/g')"
+        local goedel_bm="$(amibm | sed 's/[$`]/\\&/g')"
         if [[ -n "$goedel_bm" ]]; then
             # echo -n " \[$(tput setaf 4)\]($goedel_bm)"
             echo -n " \[\e[38;5;4m\]($goedel_bm)"
