@@ -9,6 +9,10 @@
 # Thin wrapper around Zsh's directory hashing, to provide an Apparix-like
 # persistent bookmarking system.
 
+# This script does frequently source $ZAPPARIXRC. If you think this will be a
+# problem (eg for some reason a malicious agent has access to your $ZAPPARIXRC)
+# you probably shouldn't use it.
+
 # All you need to do is ensure that this script has been sourced, and then call
 # `bm <mark>` when you're in a directory that you wish to assign the bookmark
 # <mark> to. From then on, you can use ~<mark> anywhere where Zsh is doing
