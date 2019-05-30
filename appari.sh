@@ -122,6 +122,7 @@
  #
 
 APPARIXHOME="${APPARIXHOME:=$HOME}"
+# ensure directory exists
 command mkdir -p "$APPARIXHOME"
 APPARIXRC="${APPARIXRC:=$APPARIXHOME/.apparixrc}"
 APPARIXEXPAND="${APPARIXEXPAND:=$APPARIXHOME/.apparixexpand}"
@@ -129,8 +130,10 @@ APPARIXLOG="${APPARIXLOG:=$APPARIXHOME/.apparixlog}"
 
 GOEDEL_PLACEHOLDER="${GOEDEL_PLACEHOLDER:=__GOEDEL_PLACEHOLDER__}"
 
+# ensure these files exist
 command touch "$APPARIXRC"
-touch "$APPARIXEXPAND"
+command touch "$APPARIXEXPAND"
+command touch "$APPARIXLOG"
 
 # Huffman (remove a in the next line)
 APPARIX_FILE_FUNCTIONS=( a ae av aget toot apparish apparish_newlinesafe )
