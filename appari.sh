@@ -341,7 +341,7 @@ function portal-expand() {
                 echo "j,\$subdir,\$parentdir/\$subdir" >> "\$APPARIXEXPAND"
             done
 EOF
-        done
+        done || true
 }
 
 function whence() {
