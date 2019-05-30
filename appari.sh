@@ -47,6 +47,13 @@
 #  to mark). You can change from apparix to apparish and vice versa, as they use
 #  the same resource files.
 #
+#  To un-create a bookmark (or portal), simply delete its line in $APPARIXRC.
+#  This approach is better as programmatically deleting things can be
+#  complicated and dangerous, and this means the authors of Apparix are not
+#  liable for anything you destroy.
+#  For your convenience, Apparix tries to define the alias `via` (VI Apparixrc)
+#  which, despite appearances, opens apparixrc in your $EDITOR.
+#
 #  ---
 #     bm <tag>                create bookmark <tag> for current directory
 #  ---
@@ -113,13 +120,6 @@
 #  code, subsequently improving and standardising the bash completion code, and
 #  suggesting the name apparish.
  #
-
-# TODO: allow commas and newlines in directory names
-# particular corollary is that amibm and probably some other break quite badly
-# in a PWD with a newline, because grep doesn't expect newlines
-# TODO: maybe write these as scripts with shebangs, and keep shell functions to
-# very hollow wrapper, to prevent the constant checks for bash/zsh and make it
-# easier to extend to other shells.
 
 APPARIXHOME="${APPARIXHOME:=$HOME}"
 mkdir -p "$APPARIXHOME"
@@ -195,16 +195,20 @@ fi
 # This is wrapped by apparish, which strips the # sign. This makes apparish more
 # usable in a command line. Apparish also lists bookmarks when given no
 # arguments.
+# It assumes that the mark it is given is in serialised form, which is what the
+# completion should give you. Serialised form is only really a bother if you
+# like to put whitespace and commas in your marks.
 function apparish_newlinesafe() {
     if [[ 0 == "$#" ]]; then
         >&2 echo "Apparix: need arguments"
         return 1
     else
-        local mark="$(printf "%s" "$1" | apparix_deserialise)"
-        mark="${mark%#}"
+        # local mark="$(printf "%s" "$1" | apparix_deserialise)"
+        # mark="${mark%#}"
+        local mark="$1"
         local list="$(command grep -F -- "j,$mark," "$APPARIXRC" "$APPARIXEXPAND")"
         if [[ -z "$list" ]]; then
-            >&2 echo "Mark '$1' not found"
+            >&2 echo "Mark '$mark' not found"
             return 1
         fi
         local target="$(<<< "$list" command tail -n 1 | command cut -f3 -d,)"
@@ -261,17 +265,23 @@ function apparix-list() {
         return 1
     fi
     local mark="$1"
-    command grep -F -- ",$mark," "$APPARIXRC" "$APPARIXEXPAND" | cut -f 3 -d ','
+    command grep -F -- ",$mark," "$APPARIXRC" "$APPARIXEXPAND" | cut -f3 -d,
 }
 
+# create a bookmark in PWD. The bookmark is treated as unsafe, and is passed
+# through apparix_serialise to make it safe. This means that if you give an
+# argument with a newline in, the bookmark that gets created will instead have a
+# %n.
 function bm() {
+    local mark list target
     if [[ 0 == "$#" ]]; then
         >&2 echo Need mark
         return 1
     fi
-    local mark="$1"
-    local list="$(apparix-list "$mark")"
-    echo "j,$mark,$PWD" | tee -a -- "$APPARIXLOG" >> "$APPARIXRC"
+    mark="$(printf "%s" "$1" | apparix_serialise)"
+    list="$(apparix-list "$mark")"
+    target="$(printf "%s" "$PWD" | apparix_serialise)"
+    echo "j,$mark,$target" | tee -a -- "$APPARIXLOG" >> "$APPARIXRC"
     if [[ -n "$list" ]]; then
         listsize="$(wc -l <<< "$list")"
         listtail="$(tail -n 2 <<< "$list")"
@@ -281,7 +291,7 @@ function bm() {
             echo -e "Bookmark $mark exists" \
                     "($listsize total):$ellipsis\n$listtail"
         fi
-        echo "$PWD (added)"
+        echo "$target (added)"
     fi
 }
 
@@ -299,7 +309,9 @@ function to() {
 }
 
 function portal() {
-    echo "e,$PWD" >> "$APPARIXRC"
+    local target
+    target="$(printf "%s" "$PWD" | apparix_serialise)"
+    echo "e,$target" >> "$APPARIXRC"
     portal-expand
 }
 
@@ -309,8 +321,11 @@ function portal-expand() {
     true > "$APPARIXEXPAND"
     command grep '^e,' -- "$APPARIXRC" | cut -f 2 -d , | \
         while IFS='' read -r parentdir; do
+            parentdir="$(printf "%s" "$parentdir" | apparix_deserialise)"
+            parentdir="${parentdir%#}"
             # run in an explicit bash subshell to be able to locally set the
             # right options
+            export -f apparix_serialise
             parentdir="$parentdir" APPARIXEXPAND="$APPARIXEXPAND" bash <<EOF
             cd -- "\$parentdir" || return 1
             shopt -s nullglob
@@ -319,6 +334,10 @@ function portal-expand() {
             GLOBIGNORE="./:../"
             for _subdir in */ .*/; do
                 subdir="\${_subdir%/}"
+                parentdir="\$(printf "%s" "\$parentdir" | apparix_serialise)"
+                parentdir="\${parentdir%#}"
+                subdir="\$(printf "%s" "\$subdir" | apparix_serialise)"
+                subdir="\${subdir%#}"
                 echo "j,\$subdir,\$parentdir/\$subdir" >> "\$APPARIXEXPAND"
             done
 EOF
@@ -326,12 +345,15 @@ EOF
 }
 
 function whence() {
+    local target
     if [[ 0 == "$#" ]]; then
         >&2 echo "Need mark"
         return 1
     fi
     local mark="$1"
     select target in $(apparix-list "$mark"); do
+        target="$(printf "%s" "$target" | apparix_deserialise)"
+        target="${target%#}"
         cd -- "$target" || return 1
         break
     done
@@ -346,12 +368,13 @@ function toot() {
     fi
 }
 
+# relies on Bashy expansion, so won't work if you have RC_EXPAND_PARAM in zsh
 function todo() {
-    toot "$@" TODO
+    toot "$@"/TODO
 }
 
 function rme() {
-    toot "$@" README
+    toot "$@"/README
 }
 
 # apparix listing of directories of mark
@@ -359,7 +382,7 @@ function ald() {
     local loc
     if loc="$(apparish_newlinesafe "$@")"; then
         loc="${loc%#}"
-        command ls -d "$loc"/*
+        ls -d "$loc"/*
     else
         return 1
     fi
@@ -509,15 +532,28 @@ if [[ -n "$BASH_VERSION" ]]; then
         fi
     }
 
-    # generate completions for a bookmark
-    # this is currently case insensitive. Good? Bad? Who knows!
+    # generate completions for a bookmark. It's case insensitive. This completes
+    # to a bookmark in serialised form.
     function _apparix_compgen_bm() {
-        cut -f2 -d, -- "$APPARIXRC" "$APPARIXEXPAND" | sort |\
-            command grep -i -- "^$(grepsanitise "$1")"
-        if [[ -n "$1" ]]; then
-            cut -f2 -d, -- "$APPARIXRC" "$APPARIXEXPAND" | sort |\
-                command grep -i -- "^..*$(grepsanitise "$1")"
-        fi
+        # first try and find the mark as a prefix
+        local target
+        target="$1"
+        COMPREPLY=()
+        while IFS= read -r line; do
+            COMPREPLY+=("$(printf "%q" "$line")")
+        done< <(
+            grep "^j" -- "$APPARIXRC" "$APPARIXEXPAND" | \
+                command cut -f2 -d, | command sort | command sed 's/^/,/' | \
+                command grep -Fi -- ",$target" | \
+                command sed 's/^,//'
+            if [[ -n "$1" ]]; then
+                command grep "^j" -- "$APPARIXRC" "$APPARIXEXPAND" | \
+                    command cut -f2 -d, | command sort | command sed 's/^/,/' | \
+                    command grep -Fi -- "$target" | \
+                    command grep -Fiv -- ",$target" | \
+                    command sed 's/^,//'
+            fi
+        )
     }
 
     # complete an apparix tag followed by a file inside that tag's
@@ -526,9 +562,7 @@ if [[ -n "$BASH_VERSION" ]]; then
         local tag="${COMP_WORDS[1]}"
         COMPREPLY=()
         if [[ "$COMP_CWORD" == 1 ]]; then
-            read_array <(_apparix_compgen_bm "$tag" | \
-                xargs -d $'\n' printf "%q\n")
-            COMPREPLY=( "${goedel_array[@]}" )
+            _apparix_compgen_bm "$tag"
         else
             local cur_file app_dir
             cur_file="${COMP_WORDS[2]}"
@@ -567,6 +601,8 @@ elif [[ -n "$ZSH_VERSION" ]]; then
     autoload -Uz compinit
     compinit
 
+    # these functions are totally safe because the serialisation system
+    # guarantees no newlines in apparixrc.
     function _apparix_file() {
         IFS=$'\n'
         _arguments \
