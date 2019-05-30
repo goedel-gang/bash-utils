@@ -127,6 +127,8 @@ APPARIXRC="${APPARIXRC:=$APPARIXHOME/.apparixrc}"
 APPARIXEXPAND="${APPARIXEXPAND:=$APPARIXHOME/.apparixexpand}"
 APPARIXLOG="${APPARIXLOG:=$APPARIXHOME/.apparixlog}"
 
+GOEDEL_PLACEHOLDER="${GOEDEL_PLACEHOLDER:=__GOEDEL_PLACEHOLDER__}"
+
 touch "$APPARIXRC"
 touch "$APPARIXEXPAND"
 
@@ -159,11 +161,15 @@ function apparix_serialise() {
 # This adds a trailing character "#" to preserve any trailing newlines you had.
 # Remove it with the parameter expansion ${var%#}
 function apparix_deserialise() {
-    command sed 's/%%/_GOEDEL_PLACEHOLDER_/g
-                 s/%c/,/g
-                 s/%t/'$'\t''/g
-                 s/%n/\'$'\n''/g
-                 s/_GOEDEL_PLACEHOLDER_/%/g'
+    # use perl rather than sed, because sed doesn't reliable handle trailing
+    # newlines, or particularly the lack thereof across distributions.
+    # BSD sed just bluntly adds a newline at the end.
+    # https://stackoverflow.com/questions/13325138/why-does-sed-add-a-new-line-in-osx
+    command perl -pe 's/%%/'"$GOEDEL_PLACEHOLDER"'/g;
+                 s/%c/,/g;
+                 s/%t/'$'\t''/g;
+                 s/%n/\'$'\n''/g;
+                 s/'"$GOEDEL_PLACEHOLDER"'/%/g'
     echo -n '#'
 }
 
@@ -327,7 +333,7 @@ function portal-expand() {
             # right options
             export -f apparix_serialise
             parentdir="$parentdir" APPARIXEXPAND="$APPARIXEXPAND" bash <<EOF
-            cd -- "\$parentdir" || return 1
+            cd -- "\$parentdir" || exit 1
             shopt -s nullglob
             shopt -u dotglob
             shopt -u failglob

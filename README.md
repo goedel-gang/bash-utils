@@ -22,11 +22,16 @@ retrieved from older commits (see the master branch).
 
 The new pure shell implementation is in `appari.sh`.
 
-Apparix is currently still quite weak particularly to newlines and commas in
-directory names, as is its completion as it delegates to `_filedir` from
-`bash-completion`. If you try any funny business, it will likely just result in
-some truncation, which you can fix by removing the spurious lines from
-`$APPARIXRC` manually.
+Apparix completion is currently still quite weak particularly to newlines and
+commas in directory names, as is its completion as it delegates to `_filedir`
+from `bash-completion`.
+
+However, in storing directories and bookmarks, it now uses a nice little
+serialisation system. The only consequence is that because of the way the
+bookmark escaping works, you are asked not to use the string
+`__GOEDEL_PLACEHOLDER__` in any of your bookmarks or directories. If you really
+need to, you can set the environment variable `$GOEDEL_PLACEHOLDER` to some
+other suitable, Perl regex safe string before sourcing Apparix.
 
 There is also a reference prompt that can talk to apparix, if you've got it set
 up, in `prompt.bash`. A minimal demo `bashrc` to call both is provided. You can
