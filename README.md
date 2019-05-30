@@ -58,6 +58,9 @@ it for the rest of Zsh. Also, the Zsh prompt expansion `%~` understands hashed
 directories, so more than likely your prompt already knows about your bookmarks,
 with no more configuration needed.
 
+Also, this means that you can use bookmarks together with shell globs
+(`cp ~bm/**.{png,jpg} .`).
+
 Even though I say so myself, Zapparix provides some pretty nicely formatted
 output.
 
