@@ -122,14 +122,14 @@
  #
 
 APPARIXHOME="${APPARIXHOME:=$HOME}"
-mkdir -p "$APPARIXHOME"
+command mkdir -p "$APPARIXHOME"
 APPARIXRC="${APPARIXRC:=$APPARIXHOME/.apparixrc}"
 APPARIXEXPAND="${APPARIXEXPAND:=$APPARIXHOME/.apparixexpand}"
 APPARIXLOG="${APPARIXLOG:=$APPARIXHOME/.apparixlog}"
 
 GOEDEL_PLACEHOLDER="${GOEDEL_PLACEHOLDER:=__GOEDEL_PLACEHOLDER__}"
 
-touch "$APPARIXRC"
+command touch "$APPARIXRC"
 touch "$APPARIXEXPAND"
 
 # Huffman (remove a in the next line)
@@ -146,7 +146,7 @@ APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
 # add a trailing hash character and then strip it at the end.
 # https://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
 function apparix_serialise() {
-    ( cat; echo -n '#' ) | command sed 's/%/%%/g
+    ( command cat; command echo -n '#' ) | command sed 's/%/%%/g
                  s/'$'\t''/%t/g
                  s/,/%c/g' | \
         command awk 'BEGIN { ORS="%n" } { print $0 }' | \
