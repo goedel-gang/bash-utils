@@ -196,6 +196,11 @@ else
     >&2 echo "Apparish: not aliasing via"
 fi
 
+# Apparix now automatically initialises
+function apparix-init() {
+    >&2 echo "There is no longer any need to call apparix-init"
+}
+
 # Generate paths from bookmarks and suffix paths, but append a # sign. This
 # guards trailing newlines in command substitution, but isn't very nice to look
 # at or use manually.
