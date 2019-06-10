@@ -149,8 +149,9 @@ APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
 # add a trailing hash character and then strip it at the end.
 # https://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
 function apparix_serialise() {
-    ( command cat; command echo -n '#' ) | command sed 's/%/%%/g
-                 s/,/%c/g' | \
+    ( command cat; command echo -n '#' ) | \
+        command sed 's/%/%%/g
+                     s/,/%c/g' | \
         command awk 'BEGIN { ORS="%n" } { print $0 }' | \
         command sed 's/#%n$//'
 }
