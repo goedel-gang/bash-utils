@@ -83,7 +83,7 @@ bm() {
         mark="$1"
         touch "$ZAPPARIXRC"
         hash -d -- "$mark"="$PWD"
-        hash -dL > "$ZAPPARIXRC.new"
+        {echo "# vim: ft=zsh"; hash -dL} > "$ZAPPARIXRC.new"
         zapparix_change || nochange=true
         command mv "$ZAPPARIXRC.new" "$ZAPPARIXRC"
         if [[ -n "${nochange:-}" ]]; then
@@ -91,7 +91,9 @@ bm() {
         fi
     else
         {printf 'mark\ttarget\n';
-         hash -dL | sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'} | \
+         hash -dL | \
+            grep -v "^#" | \
+            sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'} | \
             column -t -s $'\t'
     fi
 }
