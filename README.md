@@ -72,6 +72,7 @@ output.
 | `bm` | show all bookmarks |
 | `unbm <mark>` | remove the bookmark `<mark>` |
 | `unbm` | remove any bookmarks to the current directory |
+| `zapp` | toggle Zapparix on or off. Controlled at startup by `$ZAPPARIX_ACTIVE` |
 
 Note that hashed directories are accessed by prefixing the hash ("bookmark
 name") with a tilde `~`. So a sample session might look like this (this is a

@@ -50,6 +50,7 @@ ZAPPARIXHOME="${ZAPPARIXHOME:=$HOME/.config/zapparix}"
 mkdir -p "$ZAPPARIXHOME"
 ZAPPARIXRC="${ZAPPARIXRC:=$ZAPPARIXHOME/zapparixrc}"
 touch "$ZAPPARIXRC"
+ZAPPARIX_ACTIVE="${ZAPPARIX_ACTIVE:=true}"
 
 typeset -ga ZAPP_DIFF_CMD
 
@@ -66,6 +67,15 @@ alias via='"${EDITOR:-vim}" "$ZAPPARIXRC"'
 zapparix_change() {
     { ! "${ZAPP_DIFF_CMD[@]}" "$ZAPPARIXRC" "$ZAPPARIXRC.new" } || \
         { >&2 echo "no change"; return 1 }
+}
+
+zapp_post() {
+    if [ "$ZAPPARIX_ACTIVE" = "true" ]; then
+        true
+    else
+        echo "\e[31mZapparix is inactive\e[0m"
+        hash -dr
+    fi
 }
 
 # If given an argument, create a bookmark with that name.
@@ -87,6 +97,7 @@ bm() {
         zapparix_change || nochange=true
         command mv "$ZAPPARIXRC.new" "$ZAPPARIXRC"
         if [[ -n "${nochange:-}" ]]; then
+            zapp_post
             return 1
         fi
     else
@@ -95,6 +106,18 @@ bm() {
             grep -v "^#" | \
             sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'} | \
             column -t -s $'\t'
+    fi
+    zapp_post
+}
+
+# Toggle zapparix on or off
+zapp() {
+    if [ "$ZAPPARIX_ACTIVE" = "false" ]; then
+        ZAPPARIX_ACTIVE=true
+        source "$ZAPPARIXRC"
+    else
+        ZAPPARIX_ACTIVE=false
+        hash -dr
     fi
 }
 
@@ -134,10 +157,13 @@ unbm() {
     command mv "$ZAPPARIXRC.new" "$ZAPPARIXRC"
     hash -dr
     source "$ZAPPARIXRC"
+    zapp_post
     if [[ -n "${nochange:-}" ]]; then
         return 1
     fi
 }
 
 hash -dr
-source "$ZAPPARIXRC"
+if [ "$ZAPPARIX_ACTIVE" = "true" ]; then
+    source "$ZAPPARIXRC"
+fi
