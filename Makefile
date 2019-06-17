@@ -1,3 +1,5 @@
+.PHONY: all
+
 all: appari.sh apparix.zsh
 
 appari.sh: ~/.apparix/appari.sh
