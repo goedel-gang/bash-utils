@@ -115,14 +115,16 @@ zapp() {
     if [ "$ZAPPARIX_ACTIVE" = "false" ]; then
         ZAPPARIX_ACTIVE=true
         source "$ZAPPARIXRC"
+        echo "\e[32mZapparix is now active"
     else
         ZAPPARIX_ACTIVE=false
         hash -dr
+        echo "\e[31mZapparix is now inactive"
     fi
 }
 
 # If given an argument, any bookmarks with that name.
-# Otherwise, Remove any bookmarks to the current directory.
+# Otherwise, remove any bookmarks to the current directory.
 unbm() {
     emulate -L zsh
     setopt pipefail nounset errreturn noclobber
