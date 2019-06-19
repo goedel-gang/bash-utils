@@ -64,12 +64,12 @@ fi
 alias via='"${EDITOR:-vim}" "$ZAPPARIXRC"'
 
 # indicate differences between $ZAPPARIXRC" and "$ZAPPARIXRC.new"
-zapparix_change() {
+function zapparix_change() {
     { ! "${ZAPP_DIFF_CMD[@]}" "$ZAPPARIXRC" "$ZAPPARIXRC.new" } || \
         { >&2 echo "no change"; return 1 }
 }
 
-zapp_post() {
+function zapp_post() {
     if [ "$ZAPPARIX_ACTIVE" = "true" ]; then
         true
     else
@@ -84,7 +84,7 @@ zapp_post() {
 # -L. This is a very straightforward step as hash will do all the escaping for
 # us, and in fact we can use tabs in $ZAPPARIXRC because they will be escaped by
 # hash.
-bm() {
+function bm() {
     emulate -L zsh
     setopt pipefail nounset errreturn noclobber
     hash -dr
@@ -111,7 +111,7 @@ bm() {
 }
 
 # Toggle zapparix on or off
-zapp() {
+function zapp() {
     if [ "$ZAPPARIX_ACTIVE" = "false" ]; then
         ZAPPARIX_ACTIVE=true
         source "$ZAPPARIXRC"
@@ -125,7 +125,7 @@ zapp() {
 
 # If given an argument, any bookmarks with that name.
 # Otherwise, remove any bookmarks to the current directory.
-unbm() {
+function unbm() {
     emulate -L zsh
     setopt pipefail nounset errreturn noclobber
     if [[ -n "${1:-}" ]]; then
