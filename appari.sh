@@ -175,23 +175,14 @@ function apparix_deserialise() {
     echo -n '#'
 }
 
-# vim-like: totally silence the given command, with less of the tedium. doesn't
-# affect return status, so can be used inside if statements.
-# black magic: "$@" expands to each argument as a separate word.
-# gotcha: this won't expand any aliases you have. This is probably preferred
-# functionality anyway, though (at least for me)
-function silent() {
-    "$@" > /dev/null 2> /dev/null
-}
-
 # Huffman (remove this paragraph, or just alias "a" yourself)
-if ! silent command -v a; then
+if ! >/dev/null 2>&1 command -v a; then
     alias a='apparish'
 else
     >&2 echo "Apparish: not aliasing a"
 fi
 
-if ! silent command -v via; then
+if ! >/dev/null 2>&1 command -v via; then
     alias via='vi "$APPARIXRC"'
 else
     >&2 echo "Apparish: not aliasing via"
@@ -575,9 +566,9 @@ if [[ -n "$BASH_VERSION" ]]; then
             if [[ -d "$app_dir" ]]; then
                 # can't run in subshell as _apparix_comp_file modifies COMREPLY.
                 # Just hope that nothing goes wrong, basically
-                silent pushd -- "$app_dir"
+                >/dev/null 2>&1 pushd -- "$app_dir"
                 _apparix_comp_file "$1" "$cur_file"
-                silent popd
+                >/dev/null 2>&1 popd
             else
                 COMPREPLY=()
             fi
