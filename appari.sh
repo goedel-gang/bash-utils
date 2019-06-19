@@ -183,7 +183,7 @@ else
 fi
 
 if ! >/dev/null 2>&1 command -v via; then
-    alias via='vi "$APPARIXRC"'
+    alias via='"${EDITOR:-vim}" "$APPARIXRC"'
 else
     >&2 echo "Apparish: not aliasing via"
 fi
