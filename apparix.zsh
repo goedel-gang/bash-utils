@@ -21,7 +21,8 @@
 
 # Because it wraps hash, any bookmark must conform to hash's standards, so no
 # messing around with spaces and equals signs. Also, any bookmark with prefix
-# _GOEDEL_TEST is reserved for use within this script.
+# _GOEDEL_TEST is reserved for use within this script. (They're not very quick
+# to type, anyway).
 
 # Naturally, this integrates straight into Zsh's completion system, you can
 # complete on hashed directories and any contained files or subdirectories, with
@@ -44,7 +45,7 @@
 # I know that many of these double quotes are probably redundant, but I've been
 # writing a lot of Bash and don't have the mental capacity to keep two things
 # separate. I might change it sometime, or if whoever is reading this really
-# desparately cares, go wild!
+# desperately cares, go wild!
 
 ZAPPARIXHOME="${ZAPPARIXHOME:=$HOME/.config/zapparix}"
 mkdir -p "$ZAPPARIXHOME"
