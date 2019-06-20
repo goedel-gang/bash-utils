@@ -1,3 +1,13 @@
+source_if_exists() {
+    for sfile; do
+        if [[ -f "$sfile" ]]; then
+            source "$sfile"
+            return 0
+        fi;
+    done
+    >&2 echo "bashrc: could not source any of $*"
+}
+
 source "$APPARIXHOME/bash_completion"
 source "$APPARIXHOME/appari.sh"
 source "$APPARIXHOME/dummy_apparish_init.sh"

@@ -8,8 +8,25 @@
 
 # file that sets up my flashy bashy prompt
 
-# This is a redacted version of the one at goedel-gang/dotfiles/master/.bash
-# which has a Git segment and a vi-mode indicator.
+# this part configures the git bit of my prompt. I highly recommend finding this
+# script somewhere. It should in theory just come standard with git.
+
+# this is where it is on my system. Find a copy at
+# https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh.
+# I also have a backuip copy in my .bash/scripts, but that's not under any kind
+# of version control or package management.
+source_if_exists /usr/share/git/git-prompt.sh "$HOME/$BASHDOTDIR/scripts/git-prompt.sh"
+
+# show if there are staged/unstaged changes
+export GIT_PS1_SHOWDIRTYSTATE=true
+# pretty colours
+export GIT_PS1_SHOWCOLORHINTS=true
+# show if there are untracked files
+export GIT_PS1_SHOWUNTRACKEDFILES=true
+# show if you have stashed changes
+export GIT_PS1_SHOWSTASHSTATE=true
+# show relationship with upstream repository
+export GIT_PS1_SHOWUPSTREAM=auto
 
 # here follow a set of functions I have defined to compartmentalise my prompt a
 # little. They make heavy use of ANSI terminal codes and \[ \], which are used
@@ -90,7 +107,7 @@ apparix_prompt() {
     # Check if apparix exists by checking if there is an amibm command.
     # Alternative might be to check if APPARIXHOME exists but this is I think
     # nicer
-    if silent command -v amibm; then
+    if >/dev/null 2>&1 command -v amibm; then
         # escape backticks and dollars so that bash doesn't get confused about
         # command substitution
         local goedel_bm="$(amibm | sed 's/[$`]/\\&/g')"
@@ -100,6 +117,24 @@ apparix_prompt() {
         fi
     fi
 }
+
+if version_assert 4 3 0; then
+    # tell the readline library to show a vi mode indicator.
+    # this could go in inputrc, but I have my reasons that make it more
+    # straightforward to just do it here, for Bash.
+    bind "set show-mode-in-prompt on"
+    # TODO: is there way to make this work nicely with search mode?
+    # also TODO: can I put colours in here without breaking my prompt? who knows. it
+    # doesn't seem to understand \[ and \]. Ideally I would have it act the way my
+    # "pzsh" prompt looks, but I don't think it will be feasibly. Therefore, I have
+    # it go between a character and no character for maximum visibility
+    bind "set vi-ins-mode-string \"< >\""
+    bind "set vi-cmd-mode-string \"<N>\""
+    # this would colour in the matching part of what you're completing on
+    # bind "set colored-completion-prefix"
+else
+    >&2 echo "(your bash is too old for a pretty Vi mode indicator)"
+fi
 
 # function to build a pretty looking prompt, inspired by Stijn van Dongen's
 # taste in prompts, but with more colours.
@@ -120,7 +155,7 @@ goedel_prompt() {
     # zsh P10K prompt, but this is optional.
 
     # the first branch only works if you sourced git-prompt.sh earlier.
-    if silent command -v __git_ps1; then
+    if >/dev/null 2>&1 command -v __git_ps1; then
         # This last part uses __git_ps1 to inject some information about dirty
         # states and branches when in a git repository. This can be made much
         # prettier using just vanilla zsh, with the vcs_info autoload function.
@@ -145,7 +180,7 @@ prompt_profile() {
         echo -n "$component..."
         time for ((i=0; i<LOOPS; i++)); do
             # mock some arguments for the component that want them
-            silent "$component" 1 1
+            >/dev/null 2>&1 "$component" 1 1
         done
     done
 }
