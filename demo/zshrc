@@ -3,4 +3,6 @@ source "$APPARIXHOME/appari.sh"
 # to let the dummy clobber apparix rc files
 unsetopt noclobber
 source "$APPARIXHOME/dummy_apparish_init.sh"
+# Only draw one rprompt at any time
+setopt transient_rprompt
 source "$APPARIXHOME/prompt.zsh"
