@@ -71,8 +71,8 @@ shlvl_prompt() {
     fi
 }
 
-# function which returns magenta if the user has root privileges, and yellow
-# otherwise
+# function which returns red if the user has root privileges, and magenta
+# otherwise, displaying the username
 user_prompt() {
     if [[ $EUID -ne 0 ]]; then
         # echo -n "\[$(tput setaf 5)\]\u"
