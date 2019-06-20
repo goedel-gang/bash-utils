@@ -136,7 +136,7 @@ command touch "$APPARIXEXPAND"
 command touch "$APPARIXLOG"
 
 # Huffman (remove a in the next line)
-APPARIX_FILE_FUNCTIONS=( a ae av aget toot apparish apparish_newlinesafe )
+APPARIX_FILE_FUNCTIONS=( a ae av aget apparish apparish_newlinesafe )
 APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
 
 # Serialise stdin so that it can be stored safely in a CSV file. This
@@ -204,6 +204,8 @@ function apparix-init() {
 # like to put whitespace and commas in your marks.
 function apparish_newlinesafe() {
     if [ -n "$ZSH_VERSION" ]; then
+        # We need to do this so that zsh acts like bash when doing the parameter
+        # expansion "${...%#}".
         emulate -L bash
     fi
     if [[ 0 == "$#" ]]; then
@@ -265,7 +267,8 @@ function apparix-list() {
         return 1
     fi
     local mark="$1"
-    command grep -F -- ",$mark," "$APPARIXRC" "$APPARIXEXPAND" | cut -f3 -d,
+    command grep -F -- ",$mark," "$APPARIXRC" "$APPARIXEXPAND" | \
+        command cut -f3 -d,
 }
 
 # create a bookmark in PWD. The bookmark is treated as unsafe, and is passed
@@ -295,20 +298,29 @@ function bm() {
     fi
 }
 
-function to() {
+# Run some command on a subdirectory or subfile of a bookmark.
+# The mark and subdirectory come first, followed by the command. Make the
+# subdirectory an empty string if you don't want to specify it.
+function arun() {
     if [ -n "$ZSH_VERSION" ]; then
         emulate -L bash
     fi
     local loc
-    if [[ "$1" == '-' ]]; then
-        loc="-"
-    else
-        loc="$(apparish_newlinesafe "$@")"
+    mark="$1"
+    shift
+    subdir="$1"
+    shift
+    if loc="$(apparish_newlinesafe "$mark" "$subdir")"; then
         loc="${loc%#}"
+        "$@" "$loc"
+    else
+        return 1
     fi
-    if [[ "$?" == 0 ]]; then
-        cd -- "$loc" || return 1
-    fi
+}
+
+# cd to a mark
+function to() {
+    arun "$1" "$2" cd
 }
 
 function portal() {
@@ -367,59 +379,38 @@ function whence() {
     done
 }
 
-function toot() {
+function todo() {
     if [ -n "$ZSH_VERSION" ]; then
+        # make sure to use Bashy expansion for "$@"/TODO
         emulate -L bash
     fi
-    local file
-    file="$(apparish_newlinesafe "$@")"
-    file="${file%#}"
-    if [[ "$?" == 0 ]]; then
-        "${EDITOR:-vim}" "$file"
-    fi
-}
-
-# relies on Bashy expansion, so won't work if you have RC_EXPAND_PARAM in zsh
-function todo() {
-    toot "$@"/TODO
+    ae "$@"/TODO
 }
 
 function rme() {
-    toot "$@"/README
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
+    ae "$@"/README
 }
 
 # apparix listing of directories of mark
 function ald() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
-    local loc
-    if loc="$(apparish_newlinesafe "$@")"; then
-        loc="${loc%#}"
-        ls -d "$loc"/*
-    else
-        return 1
-    fi
+    arun "$1" "$2" ls -d
 }
 
 # apparix ls of mark
 function als() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
-    local loc
-    if loc="$(apparish_newlinesafe "$@")"; then
-        loc="${loc%#}"
-        ls "$loc"
-    else
-        return 1
-    fi
+    arun "$1" "$2" ls -d
 }
 
 # apparix search if current directory is a bookmark or portal
 function amibm() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     target="$(printf "%s" "$PWD" | apparix_serialise)"
-    (
+    {
     command grep "^j" "$APPARIXRC" | command cut -d, -f2,3 | \
         sed 's#$#//#' | \
         command grep -F -- ",$target//" | \
@@ -432,71 +423,42 @@ function amibm() {
         sed 's#$#//#' | \
         command grep -F -- ",$target//" | \
         command sed "s/.*/>[p]/"
-    ) | command paste -s -d ' ' - || true
+    } | command paste -s -d ' ' - || true
     # always return successfully, even if grep doesn't find anything
 }
 
 # apparix search bookmark
 function bmgrep() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     pat="${1?Need a pattern to search}"
     command grep -i -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' | \
         column -t -s,
 }
 
+function apparix_aget_cp() {
+    cp "$1" .
+}
+
 # apparix get; get something from a mark
 function aget() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
-    local loc
-    if loc="$(apparish_newlinesafe "$@")"; then
-        loc="${loc%#}"
-        cp "$loc" .
-    else
-        return 1
-    fi
+    arun "$1" "$2" apparix_aget_cp
 }
 
 # apparix mkdir in mark
 function amd() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
-    local loc
-    if loc="$(apparish_newlinesafe "$@")"; then
-        loc="${loc%#}"
-        mkdir -p -- "$loc"
-    else
-        return 1
-    fi
+    arun "$1" "$2" mkdir -p --
 }
 
 # apparix edit of file in mark or subdirectory of mark
 function av() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
-    local loc
-    if loc="$(apparish_newlinesafe "$@")"; then
-        loc="${loc%#}"
-        view -- "$loc"
-    else
-        return 1
-    fi
+    arun "$1" "$2" view --
 }
 
 # apparix edit of file in mark or subdirectory of mark
 function ae() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
-    local loc
-    if loc="$(apparish_newlinesafe "$@")"; then
-        loc="${loc%#}"
-        "${EDITOR:-vim}" "$loc"
-    else
-        return 1
-    fi
+    arun "$1" "$2" "${EDITOR:-vim}"
 }
 
 function apparish_ls() {
