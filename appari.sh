@@ -55,31 +55,36 @@
 #  which, despite appearances, opens apparixrc in your $EDITOR.
 #
 #  ---
-#     bm <tag>                create bookmark <tag> for current directory
+#     bm TAG                  create bookmark TAG for current directory
 #  ---
-#     to <tag>                jump to the directory marked <tag>
-#     to <tag> <TAB>          tab-complete on subdirectories of <tag>
-#     to <tag> s<TAB>         tab-complete on subdirectories of <tag> starting
+#     to TAG                  jump to the directory marked TAG
+#     to TAG <TAB>            tab-complete on subdirectories of TAG
+#     to TAG s<TAB>           tab-complete on subdirectories of TAG starting
 #                             with s
-#     to <tag> foo/<TAB>      tab-complete in subdirectory foo of <tag>
-#     to <tag> foo/bar<TAB>   et cetera et cetera
+#     to TAG foo/<TAB>        tab-complete in subdirectory foo of TAG
+#     to TAG foo/bar<TAB>     et cetera et cetera
 #
 #  --- the commands below allow tab-completion identical to 'to' above.
-#     als <tag>               list contents of <tag> directory
-#     ald <tag>               list subdirectories of <tag> directory
-#     amd <tag> NAME          issue mkdir in <tag> directory
-#     amd <tag> PATH/<TAB>    amd allows tab completion
-#     ae <tag> FILE           edit FILE in <tag> directory
-#     ae <tag> FI<TAB>        complete on FI in <tag> directory
-#     a <tag> s<TAB>          echo the location of the <tag> directory or
+#     als TAG                 list contents of TAG directory
+#     ald TAG                 list subdirectories of TAG directory
+#     amd TAG NAME            issue mkdir in TAG directory
+#     amd TAG PATH/<TAB>      amd allows tab completion
+#     arun TAG PATH COM [...] Run the command COM on the result of getting
+#                             PATH from TAG. This is safe on trailing newlines
+#                             and such. If you don't want to specify a PATH,
+#                             pass an empty argument: ''
+#     ae TAG FILE             edit FILE in TAG directory
+#     ae TAG FI<TAB>          complete on FI in TAG directory
+#     a TAG s<TAB>            echo the location of the TAG directory or
 #                             content.
 #                             This is useful in command substitution, e.g.
-#                             'cp somefile ($a tag src)'
+#                             'cp somefile ($a tag src)' - although arun should
+#                             be a theoretically safer alternative, if possible.
 #
-#  --- apparix uses by default the most recent <tag> if identical tags exist.
+#  --- apparix uses by default the most recent TAG   if identical tags exist.
 #                It can e.g. be useful to use 'now' as an often-changing tag.
-#     apparix-list <tag>      list all destinations marked <tag>
-#     whence <tag>            Enter menu to select destination
+#     apparix-list TAG        list all destinations marked TAG
+#     whence TAG              Enter menu to select destination
 #
 #  --- the functionality below mimics bash CDPATH.
 #     portal                  add all subdirectory names as mark
@@ -136,7 +141,7 @@ command touch "$APPARIXEXPAND"
 command touch "$APPARIXLOG"
 
 # Huffman (remove a in the next line)
-APPARIX_FILE_FUNCTIONS=( a ae av aget apparish apparish_newlinesafe )
+APPARIX_FILE_FUNCTIONS=( a ae av aget arun apparish apparish_newlinesafe )
 APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
 
 # Serialise stdin so that it can be stored safely in a CSV file. This
