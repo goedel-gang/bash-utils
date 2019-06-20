@@ -203,12 +203,13 @@ function apparix-init() {
 # completion should give you. Serialised form is only really a bother if you
 # like to put whitespace and commas in your marks.
 function apparish_newlinesafe() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     if [[ 0 == "$#" ]]; then
         >&2 echo "Apparix: need arguments"
         return 1
     else
-        # local mark="$(printf "%s" "$1" | apparix_deserialise)"
-        # mark="${mark%#}"
         local mark="$1"
         local list="$(command grep -F -- "j,$mark," "$APPARIXRC" "$APPARIXEXPAND")"
         if [[ -z "$list" ]]; then
@@ -231,6 +232,9 @@ function apparish_newlinesafe() {
 }
 
 function apparish() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     if [[ 0 == "$#" ]]; then
         # don't do any deserialisation, because that will mostly just serve to
         # confuse column, by reintroducing tabs and newlines
@@ -292,6 +296,9 @@ function bm() {
 }
 
 function to() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local loc
     if [[ "$1" == '-' ]]; then
         loc="-"
@@ -312,6 +319,9 @@ function portal() {
 }
 
 function portal-expand() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local parentdir
     rm -f -- "$APPARIXEXPAND"
     true > "$APPARIXEXPAND"
@@ -340,6 +350,9 @@ function portal-expand() {
 }
 
 function whence() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local target
     if [[ 0 == "$#" ]]; then
         >&2 echo "Need mark"
@@ -355,6 +368,9 @@ function whence() {
 }
 
 function toot() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local file
     file="$(apparish_newlinesafe "$@")"
     file="${file%#}"
@@ -374,6 +390,9 @@ function rme() {
 
 # apparix listing of directories of mark
 function ald() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local loc
     if loc="$(apparish_newlinesafe "$@")"; then
         loc="${loc%#}"
@@ -385,6 +404,9 @@ function ald() {
 
 # apparix ls of mark
 function als() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local loc
     if loc="$(apparish_newlinesafe "$@")"; then
         loc="${loc%#}"
@@ -423,6 +445,9 @@ function bmgrep() {
 
 # apparix get; get something from a mark
 function aget() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local loc
     if loc="$(apparish_newlinesafe "$@")"; then
         loc="${loc%#}"
@@ -434,6 +459,9 @@ function aget() {
 
 # apparix mkdir in mark
 function amd() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local loc
     if loc="$(apparish_newlinesafe "$@")"; then
         loc="${loc%#}"
@@ -445,6 +473,9 @@ function amd() {
 
 # apparix edit of file in mark or subdirectory of mark
 function av() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local loc
     if loc="$(apparish_newlinesafe "$@")"; then
         loc="${loc%#}"
@@ -456,6 +487,9 @@ function av() {
 
 # apparix edit of file in mark or subdirectory of mark
 function ae() {
+    if [ -n "$ZSH_VERSION" ]; then
+        emulate -L bash
+    fi
     local loc
     if loc="$(apparish_newlinesafe "$@")"; then
         loc="${loc%#}"
