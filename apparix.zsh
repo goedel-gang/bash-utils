@@ -95,7 +95,7 @@ function bm() {
         mark="$1"
         touch "$ZAPPARIXRC"
         hash -d -- "$mark"="$PWD"
-        {echo "# vim: ft=zsh"; hash -dL} > "$ZAPPARIXRC.new"
+        { echo "# vim: ft=zsh"; hash -dL; } > "$ZAPPARIXRC.new"
         zapparix_change || nochange=true
         command mv "$ZAPPARIXRC.new" "$ZAPPARIXRC"
         if [[ -n "${nochange:-}" ]]; then
@@ -103,11 +103,11 @@ function bm() {
             return 1
         fi
     else
-        {printf 'mark\ttarget\n';
-         hash -dL | \
-            grep -v "^#" | \
-            sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'} | \
-            column -t -s $'\t'
+        { printf 'mark\ttarget\n';
+          hash -dL | \
+             grep -v "^#" | \
+             sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'; } | \
+             column -t -s $'\t'
     fi
     zapp_post
 }
@@ -136,8 +136,8 @@ function unbm() {
         # remove lines either with hash -d -- $mark= or hash -d $mark= might
         # cause false positives in really truly bizarre circumstances, eg if you
         # like to name your directories "hash -d -- $mark=".
-        command grep -v -F "hash -d $mark="$'\n'"hash -d -- $mark=" "$ZAPPARIXRC" \
-            > "$ZAPPARIXRC.new"
+        command grep -v -F "hash -d $mark="$'\n'"hash -d -- $mark=" \
+            "$ZAPPARIXRC" > "$ZAPPARIXRC.new"
     else
         # remove lines containing the (quote-escaped) current directory. This
         # seems to be what hash -dL uses to serialise. Again, maybe false
