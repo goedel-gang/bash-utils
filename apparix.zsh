@@ -66,8 +66,8 @@ alias via='"${EDITOR:-vim}" "$ZAPPARIXRC"'
 
 # indicate differences between $ZAPPARIXRC" and "$ZAPPARIXRC.new"
 function zapparix_change() {
-    { ! "${ZAPP_DIFF_CMD[@]}" "$ZAPPARIXRC" "$ZAPPARIXRC.new" } || \
-        { >&2 echo "no change"; return 1 }
+    { ! "${ZAPP_DIFF_CMD[@]}" "$ZAPPARIXRC" "$ZAPPARIXRC.new"; } || \
+        { >&2 echo "no change"; return 1; }
 }
 
 function zapp_post() {
@@ -88,6 +88,7 @@ function zapp_post() {
 function bm() {
     emulate -L zsh
     setopt pipefail nounset errreturn noclobber
+    local mark nochange
     hash -dr
     source "$ZAPPARIXRC"
     if [[ -n "${1:-}" ]]; then
@@ -129,6 +130,7 @@ function zapp() {
 function unbm() {
     emulate -L zsh
     setopt pipefail nounset errreturn noclobber
+    local nochange quot_pwd
     if [[ -n "${1:-}" ]]; then
         mark="$1"
         # remove lines either with hash -d -- $mark= or hash -d $mark= might
@@ -151,10 +153,9 @@ function unbm() {
         quot_pwd="$(hash -dL | \
             command grep '^hash -d\( --\)\? _GOEDEL_TEST=' | \
             command sed -E 's/^hash -d( --)? _GOEDEL_TEST=//')"
-        command sed 's#$#//#g' "$ZAPPARIXRC" | \
+        command sed 's#$#//#' "$ZAPPARIXRC" | \
                 command grep -v -F "=$quot_pwd//" | \
-                command sed 's#//$##g' \
-                > "$ZAPPARIXRC.new"
+                command sed 's#//$##' > "$ZAPPARIXRC.new"
     fi
     zapparix_change || nochange=true
     command mv "$ZAPPARIXRC.new" "$ZAPPARIXRC"
