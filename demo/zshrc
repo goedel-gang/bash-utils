@@ -1,7 +1,9 @@
 GOEDEL_APPARIX=true
-# set basic completion style
-zstyle ':completion:*' menu select=1
+# set basic completion style, to show a menu and cycle through, using LS_COLORS
+# to highlight directories
 setopt menucomplete
+zstyle ':completion:*' menu select=1
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 source "$APPARIXHOME/appari.sh"
 # to let the dummy clobber apparix rc files
 unsetopt noclobber
