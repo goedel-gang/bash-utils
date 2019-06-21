@@ -1,5 +1,5 @@
-# shellcheck disable=SC2016 shell=bash
-# vim: ts=4 sw=0 sts=-1 et
+# shellcheck disable=SC2016,SC2155,SC1003 shell=bash
+# vim: ts=4 sw=0 sts=-1 et ft=bash
 
 #   ___  __  __  ____    ___   ____  _____   _     _   _  _____  _
 #  |_ _||  \/  ||  _ \  / _ \ |  _ \|_   _| / \   | \ | ||_   _|| |
@@ -15,6 +15,9 @@
 # ignore errors about:
 # - unexpanded substitutions in single quotes, because sometimes you need to
 #   delay command substitution
+# - simultaneous declaration and assignment, because I know what I'm doing
+#   (fingers crossed)
+# - quoting patterns, because I know better than shellcheck
 
 # Vim modeline to try and keep the indentation in check.
 
@@ -311,6 +314,9 @@ function arun() {
     shift
     if loc="$(apparish_newlinesafe "$mark" "$subdir")"; then
         loc="${loc%#}"
+        if [ ! -e "$loc" ]; then
+            >&2 echo "warning: '$loc' does not exist"
+        fi
         "$@" "$loc"
     else
         return 1
@@ -342,7 +348,8 @@ function portal-expand() {
             # right options
             export -f apparix_serialise
             parentdir="$parentdir" APPARIXEXPAND="$APPARIXEXPAND" bash -c '
-            cd -- "$parentdir" || exit 1
+            cd -- "$parentdir" ||
+                { >&2 echo "could not cd to $parentdir"; exit 1; }
             shopt -s nullglob
             shopt -u dotglob
             shopt -u failglob
@@ -369,7 +376,8 @@ function whence() {
     select target in $(apparix-list "$mark"); do
         target="$(printf "%s" "$target" | apparix_deserialise)"
         target="${target%#}"
-        cd -- "$target" || return 1
+        cd -- "$target" ||
+            { >&2 echo "Could not cd to $1"; return 1; }
         break
     done
 }
@@ -377,12 +385,12 @@ function whence() {
 function todo() {
     # make sure to use Bashy expansion for "$@"/TODO
     [ -n "$ZSH_VERSION" ] && emulate -L bash
-    ae "$@"/TODO
+    ae "$1" "$2"/TODO
 }
 
 function rme() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
-    ae "$@"/README
+    ae "$1" "$2"/README
 }
 
 # apparix listing of directories of mark
@@ -549,9 +557,11 @@ if [[ -n "$BASH_VERSION" ]]; then
             if [[ -d "$app_dir" ]]; then
                 # can't run in subshell as _apparix_comp_file modifies COMREPLY.
                 # Just hope that nothing goes wrong, basically
-                >/dev/null 2>&1 pushd -- "$app_dir"
+                >/dev/null 2>&1 pushd -- "$app_dir" ||
+                    { >&2 echo "bad directory: $app_dir"; exit; }
                 _apparix_comp_file "$1" "$cur_file"
-                >/dev/null 2>&1 popd
+                >/dev/null 2>&1 popd ||
+                    { >&2 echo "could not popd"; exit; }
             else
                 COMPREPLY=()
             fi
