@@ -1,4 +1,7 @@
 GOEDEL_APPARIX=true
+# set basic completion style
+zstyle ':completion:*' menu select=1
+setopt menucomplete
 source "$APPARIXHOME/appari.sh"
 # to let the dummy clobber apparix rc files
 unsetopt noclobber
