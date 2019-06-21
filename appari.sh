@@ -59,6 +59,8 @@
 #
 #  ---
 #     bm TAG                  create bookmark TAG for current directory
+#     unbm                    remove the bookmark to CWD
+#     unbm TAG                remove any bookmarks named `tag`
 #  ---
 #     to TAG                  jump to the directory marked TAG
 #     to TAG <TAB>            tab-complete on subdirectories of TAG
@@ -92,6 +94,8 @@
 #  --- the functionality below mimics bash CDPATH.
 #     portal                  add all subdirectory names as mark
 #     portal-expand           refresh the portal subdirectory cache
+#     unportal                remove the portal in CWD
+#     unportal DIR            remove the portal in DIR
 #
 #  If you use 'ae', make sure $EDITOR is set to the name of an available editor.
 #  I find it useful to have this alias:
@@ -145,7 +149,7 @@ command touch "$APPARIXLOG"
 
 # Huffman (remove a in the next line)
 APPARIX_FILE_FUNCTIONS=( a ae av aget arun apparish apparish_newlinesafe )
-APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme )
+APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme unbm )
 
 # Serialise stdin so that it can be stored safely in a CSV file. This
 # involves escaping commas and newlines. It should be pretty straightforwardly
@@ -239,6 +243,8 @@ function apparish_newlinesafe() {
     fi
 }
 
+# the human-friendly wrapper around apparish_newlinesafe (which means that it
+# sacrifices some correctness). Also implements a listing of bookmarks.
 function apparish() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
     if [[ 0 == "$#" ]]; then
@@ -265,6 +271,7 @@ function apparish() {
     fi
 }
 
+# list all instances of bookmarks with some name
 function apparix-list() {
     if [[ 0 == "$#" ]]; then
         >&2 echo "Need mark"
@@ -275,15 +282,14 @@ function apparix-list() {
         command cut -f3 -d,
 }
 
-# create a bookmark in PWD. The bookmark is treated as unsafe, and is passed
+# create a bookmark in CWD. The bookmark is treated as unsafe, and is passed
 # through apparix_serialise to make it safe. This means that if you give an
 # argument with a newline in, the bookmark that gets created will instead have a
 # %n.
 function bm() {
     local mark list target
     if [[ 0 == "$#" ]]; then
-        >&2 echo Need mark
-        return 1
+        apparish
     fi
     mark="$(printf "%s" "$1" | apparix_serialise)"
     list="$(apparix-list "$mark")"
@@ -299,6 +305,60 @@ function bm() {
                     "($listsize total):$ellipsis\n$listtail"
         fi
         echo "$target (added)"
+    fi
+}
+
+# indicate differences between $APPARIXRC" and "$APPARIXRC.new"
+function apparix_change() {
+    { ! diff "$APPARIXRC" "$APPARIXRC.new"; } || \
+        { >&2 echo "no change"; return 1; }
+}
+
+# Remove a bookmark. Given no argument, tries to remove the bookmark in CWD.
+# Otherwise, tries to remove the bookmark by name.
+function unbm() {
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
+    local nochange mark target
+    if [ -n "$1" ]; then
+        mark="$1"
+        # This is safe because there are guaranteed to be exactly two commas in each
+        # line.
+        command grep -v -F "j,$mark," "$APPARIXRC" > "$APPARIXRC.new"
+    else
+        target="$(printf "%s" "$PWD" | apparix_serialise)"
+        # append two slashes to the end in order to match them with a literal
+        # grep
+        command sed 's#$#//#' "$APPARIXRC" | \
+            command grep -v -F ",$target//" | \
+            command sed 's#//$##' > "$APPARIXRC.new"
+    fi
+    apparix_change || nochange=true
+    command mv "$APPARIXRC.new" "$APPARIXRC"
+    if [ -n "$nochange" ]; then
+        return 1
+    fi
+}
+
+# Remove a portal. Given an argument, it tries to remove the portal in the
+# directory by that name. Given no argument, it tries to remove the portal in
+# the current directory.
+function unportal() {
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
+    local target nochange
+    if [ -n "$1" ]; then
+        target="$(realpath "$1")"
+    else
+        target="$PWD"
+    fi
+    # prepend two commas to "e" lines to safely ignore bookmarks called "e"
+    command sed "s/^e/,,e/" "$APPARIXRC" | \
+        command grep -v -F ",e,$target" | \
+        command sed "s/^,,e/e/" > "$APPARIXRC.new"
+    apparix_change || nochange=true
+    command mv "$APPARIXRC.new" "$APPARIXRC"
+    portal-expand
+    if [ -n "$nochange" ]; then
+        return 1
     fi
 }
 
@@ -348,20 +408,20 @@ function portal-expand() {
             # right options
             export -f apparix_serialise
             parentdir="$parentdir" APPARIXEXPAND="$APPARIXEXPAND" bash -c '
-            cd -- "$parentdir" ||
-                { >&2 echo "could not cd to $parentdir"; exit 1; }
-            shopt -s nullglob
-            shopt -u dotglob
-            shopt -u failglob
-            GLOBIGNORE="./:../"
-            for _subdir in */ .*/; do
-                subdir="${_subdir%/}"
-                parentdir="$(printf "%s" "$parentdir" | apparix_serialise)"
-                parentdir="${parentdir%#}"
-                subdir="$(printf "%s" "$subdir" | apparix_serialise)"
-                subdir="${subdir%#}"
-                echo "j,$subdir,$parentdir/$subdir" >> "$APPARIXEXPAND"
-            done'
+                cd -- "$parentdir" ||
+                    { >&2 echo "could not cd to $parentdir"; exit 1; }
+                parentdir_ser="$(printf "%s" "$parentdir" | apparix_serialise)"
+                parentdir_ser="${parentdir_ser%#}"
+                shopt -s nullglob
+                shopt -u dotglob
+                shopt -u failglob
+                GLOBIGNORE="./:../"
+                for _subdir in */ .*/; do
+                    subdir="${_subdir%/}"
+                    subdir="$(printf "%s" "$subdir" | apparix_serialise)"
+                    subdir="${subdir%#}"
+                    echo "j,$subdir,$parentdir_ser/$subdir" >> "$APPARIXEXPAND"
+                done'
         done || true
 }
 
