@@ -140,7 +140,7 @@ APPARIXRC="${APPARIXRC:=$APPARIXHOME/.apparixrc}"
 APPARIXEXPAND="${APPARIXEXPAND:=$APPARIXHOME/.apparixexpand}"
 APPARIXLOG="${APPARIXLOG:=$APPARIXHOME/.apparixlog}"
 
-GOEDEL_PLACEHOLDER="${GOEDEL_PLACEHOLDER:=__GOEDEL_PLACEHOLDER__}"
+APPARIX_PLACEHOLDER="${APPARIX_PLACEHOLDER:=__APPARIX_PLACEHOLDER__}"
 
 # ensure these files exist
 command touch "$APPARIXRC"
@@ -169,7 +169,7 @@ function apparix_serialise() {
 }
 
 # https://stackoverflow.com/questions/723157/how-to-insert-a-newline-in-front-of-a-pattern
-# Makes use of the dummy placeholder _GOEDEL_PLACEHOLDER_, so please don't put
+# Makes use of the dummy placeholder _APPARIX_PLACEHOLDER_, so please don't put
 # that in any of your directories or tags, or if you do, think of a better
 # placeholder.
 # https://unix.stackexchange.com/questions/17732/where-has-the-trailing-newline-char-gone-from-my-command-substitution
@@ -180,10 +180,10 @@ function apparix_deserialise() {
     # newlines, or particularly the lack thereof across distributions.
     # BSD sed just bluntly adds a newline at the end.
     # https://stackoverflow.com/questions/13325138/why-does-sed-add-a-new-line-in-osx
-    command perl -pe 's/%%/'"$GOEDEL_PLACEHOLDER"'/g;
+    command perl -pe 's/%%/'"$APPARIX_PLACEHOLDER"'/g;
                       s/%c/,/g;
                       s/%n/\'$'\n''/g;
-                      s/'"$GOEDEL_PLACEHOLDER"'/%/g'
+                      s/'"$APPARIX_PLACEHOLDER"'/%/g'
     echo -n '#'
 }
 
@@ -350,10 +350,7 @@ function unportal() {
     else
         target="$PWD"
     fi
-    # prepend two commas to "e" lines to safely ignore bookmarks called "e"
-    command sed "s/^e/,,e/" "$APPARIXRC" | \
-        command grep -v -F ",e,$target" | \
-        command sed "s/^,,e/e/" > "$APPARIXRC.new"
+    command grep -v -Fx "e,$target" "$APPARIXRC" > "$APPARIXRC.new"
     apparix_change || nochange=true
     command mv "$APPARIXRC.new" "$APPARIXRC"
     portal-expand
@@ -442,27 +439,6 @@ function whence() {
     done
 }
 
-function todo() {
-    # make sure to use Bashy expansion for "$@"/TODO
-    [ -n "$ZSH_VERSION" ] && emulate -L bash
-    ae "$1" "$2"/TODO
-}
-
-function rme() {
-    [ -n "$ZSH_VERSION" ] && emulate -L bash
-    ae "$1" "$2"/README
-}
-
-# apparix listing of directories of mark
-function ald() {
-    arun "$1" "$2" ls -d
-}
-
-# apparix ls of mark
-function als() {
-    arun "$1" "$2" ls
-}
-
 # apparix search if current directory is a bookmark or portal
 function amibm() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
@@ -492,6 +468,31 @@ function bmgrep() {
         column -t -s,
 }
 
+# edit a TODO file
+function todo() {
+    # make sure to use Bashy expansion for "$@"/TODO
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
+    ae "$1" "$2"/TODO
+}
+
+# edit a README file
+function rme() {
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
+    ae "$1" "$2"/README
+}
+
+# apparix listing of directories of mark
+function ald() {
+    arun "$1" "$2" ls -d
+}
+
+# apparix ls of mark
+function als() {
+    arun "$1" "$2" ls
+}
+
+# We need to define this intermediate function so that we move the argument
+# order around
 function apparix_aget_cp() {
     cp "$1" .
 }
@@ -516,6 +517,7 @@ function ae() {
     arun "$1" "$2" "${EDITOR:-vim}"
 }
 
+# Display usage text
 function apparish_ls() {
     cat <<EOH
   bm MARK                 Bookmark current directory as mark
