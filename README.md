@@ -1,19 +1,5 @@
 # bash-utils
 
-    ██ ███    ███ ██████   ██████  ██████  ████████  █████  ███    ██ ████████ ██ 
-    ██ ████  ████ ██   ██ ██    ██ ██   ██    ██    ██   ██ ████   ██    ██    ██ 
-    ██ ██ ████ ██ ██████  ██    ██ ██████     ██    ███████ ██ ██  ██    ██    ██ 
-    ██ ██  ██  ██ ██      ██    ██ ██   ██    ██    ██   ██ ██  ██ ██    ██       
-    ██ ██      ██ ██       ██████  ██   ██    ██    ██   ██ ██   ████    ██    ██ 
-
-This would look better if Github would just use a monospace font with normal
-vertical spacing. Oh well.
-
-This fork of apparix is not compatible with older Bashes, as it relies on you
-having sourced `bash-completion` (https://github.com/scop/bash-completion),
-which needs Bash 4.1+. Fret not, the `master` branch is still more or less
-compatible, and gets updates every now and then (when I feel like it).
-
 ## Apparix
 
 Directory bookmarking system. It used to be implemented in C, shipped with bash
@@ -21,10 +7,6 @@ wrapper functions and completion code. This is now legacy, and should be
 retrieved from older commits (see the master branch).
 
 The new pure shell implementation is in `appari.sh`.
-
-Apparix completion is currently still quite weak particularly to newlines and
-commas in directory names, as is its completion as it delegates to `_filedir`
-from `bash-completion`.
 
 However, in storing directories and bookmarks, it now uses a nice little
 serialisation system. The only consequence is that because of the way the
