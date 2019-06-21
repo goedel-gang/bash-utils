@@ -1,4 +1,4 @@
-# shellcheck disable=SC2016,SC2155,SC1003 shell=bash
+# shellcheck disable=SC2016,SC2155,SC1003,SC2120,SC2119 shell=bash
 # vim: ts=4 sw=0 sts=-1 et ft=bash
 
 # ignore errors about:
@@ -7,6 +7,7 @@
 # - simultaneous declaration and assignment, because I know what I'm doing
 #   (fingers crossed)
 # - quoting patterns, because I know better than shellcheck
+# - not passing arguments to functions, because that's dumb
 
 # Vim modeline to try and keep the indentation in check.
 
@@ -39,12 +40,10 @@
 #  to mark). You can change from apparix to apparish and vice versa, as they use
 #  the same resource files.
 #
-#  To un-create a bookmark (or portal), simply delete its line in $APPARIXRC.
-#  This approach is better as programmatically deleting things can be
-#  complicated and dangerous, and this means the authors of Apparix are not
-#  liable for anything you destroy.
-#  For your convenience, Apparix tries to define the alias `via` (VI Apparixrc)
-#  which, despite appearances, opens apparixrc in your $EDITOR.
+#  For finer-grained control of bookmark removal, Apparix tries to define the
+#  alias `via` for your convenience. This opens your $APPARIXRC in your editor
+#  of choice (vim by default, obviously), enabling you to delete the offending
+#  line(s).
 #
 #  ---
 #     bm TAG                  create bookmark TAG for current directory
@@ -86,7 +85,9 @@
 #     unportal                remove the portal in CWD
 #     unportal DIR            remove the portal in DIR
 #
-#  If you use 'ae', make sure $EDITOR is set to the name of an available editor.
+#  If you use 'ae', make sure $EDITOR is set to the name of an available editor,
+#  or you will be dumped into vim.
+#
 #  I find it useful to have this alias:
 #
 #     alias a=apparish
@@ -150,7 +151,7 @@ APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme unbm )
 # add a trailing hash character and then strip it at the end.
 # https://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
 function apparix_serialise() {
-    ( command cat; command echo -n '#' ) | \
+    { command cat; command echo -n '#'; } | \
         command sed 's/%/%%/g
                      s/,/%c/g' | \
         command awk 'BEGIN { ORS="%n" } { print $0 }' | \
@@ -288,8 +289,8 @@ function bm() {
         listsize="$(wc -l <<< "$list")"
         listtail="$(tail -n 2 <<< "$list")"
         ellipsis=""
-        if (( listsize > 2 )); then ellipsis="\n(...)"; fi
-        if (( listsize > 0 )); then
+        if [ "$listsize" -gt 2 ]; then ellipsis="\n(...)"; fi
+        if [ "$listsize" -gt 0 ]; then
             echo -e "Bookmark $mark exists" \
                     "($listsize total):$ellipsis\n$listtail"
         fi
