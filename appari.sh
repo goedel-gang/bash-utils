@@ -392,7 +392,7 @@ function ald() {
 
 # apparix ls of mark
 function als() {
-    arun "$1" "$2" ls -d
+    arun "$1" "$2" ls
 }
 
 # apparix search if current directory is a bookmark or portal
