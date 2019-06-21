@@ -1,5 +1,7 @@
 # bash-utils
 
+See the `newlines` branch for a less divergent copy of some of the stuff here.
+
 ## Zapparix
 
 Zapparix is a thin layer on top of Zsh's hashed directories. It provides an
