@@ -208,11 +208,9 @@ function apparix-init() {
 # completion should give you. Serialised form is only really a bother if you
 # like to put whitespace and commas in your marks.
 function apparish_newlinesafe() {
-    if [ -n "$ZSH_VERSION" ]; then
-        # We need to do this so that zsh acts like bash when doing the parameter
-        # expansion "${...%#}".
-        emulate -L bash
-    fi
+    # We need to do this so that zsh acts like bash when doing the parameter
+    # expansion "${...%#}".
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     if [[ 0 == "$#" ]]; then
         >&2 echo "Apparix: need arguments"
         return 1
@@ -239,9 +237,7 @@ function apparish_newlinesafe() {
 }
 
 function apparish() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     if [[ 0 == "$#" ]]; then
         # don't do any deserialisation, because that will mostly just serve to
         # confuse column, by reintroducing tabs and newlines
@@ -307,9 +303,7 @@ function bm() {
 # The mark and subdirectory come first, followed by the command. Make the
 # subdirectory an empty string if you don't want to specify it.
 function arun() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     local loc
     mark="$1"
     shift
@@ -336,9 +330,7 @@ function portal() {
 }
 
 function portal-expand() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     local parentdir
     rm -f -- "$APPARIXEXPAND"
     true > "$APPARIXEXPAND"
@@ -367,9 +359,7 @@ function portal-expand() {
 }
 
 function whence() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     local target
     if [[ 0 == "$#" ]]; then
         >&2 echo "Need mark"
@@ -385,17 +375,13 @@ function whence() {
 }
 
 function todo() {
-    if [ -n "$ZSH_VERSION" ]; then
-        # make sure to use Bashy expansion for "$@"/TODO
-        emulate -L bash
-    fi
+    # make sure to use Bashy expansion for "$@"/TODO
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     ae "$@"/TODO
 }
 
 function rme() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     ae "$@"/README
 }
 
@@ -411,9 +397,7 @@ function als() {
 
 # apparix search if current directory is a bookmark or portal
 function amibm() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     target="$(printf "%s" "$PWD" | apparix_serialise)"
     {
     command grep "^j" "$APPARIXRC" | command cut -d, -f2,3 | \
@@ -434,9 +418,7 @@ function amibm() {
 
 # apparix search bookmark
 function bmgrep() {
-    if [ -n "$ZSH_VERSION" ]; then
-        emulate -L bash
-    fi
+    [ -n "$ZSH_VERSION" ] && emulate -L bash
     pat="${1?Need a pattern to search}"
     command grep -i -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' | \
         column -t -s,
