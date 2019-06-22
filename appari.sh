@@ -333,7 +333,7 @@ function unbm() {
     fi
     apparix_change || nochange=true
     command mv "$APPARIXRC.new" "$APPARIXRC"
-    [ -n "$nochange" ] && return 1
+    [ -z "$nochange" ] || return 1
 }
 
 # Remove a portal. Given an argument, it tries to remove the portal in the
@@ -352,7 +352,7 @@ function unportal() {
     apparix_change || nochange=true
     command mv "$APPARIXRC.new" "$APPARIXRC"
     portal-expand
-    [ -n "$nochange" ] && return 1
+    [ -z "$nochange" ] || return 1
 }
 
 # Run some command on a subdirectory or subfile of a bookmark.
@@ -419,7 +419,7 @@ function portal-expand() {
         done || true
     apparix_change "$APPARIXEXPAND" || nochange=true
     command mv "$APPARIXEXPAND.new" "$APPARIXEXPAND"
-    [ -n "$nochange" ] && return 1
+    [ -z "$nochange" ] || return 1
 }
 
 # Like to, but for when you have conflicting bookmark entries
