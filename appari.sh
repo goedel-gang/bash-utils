@@ -621,6 +621,13 @@ if [ -n "$BASH_VERSION" ]; then
             d) ;;
             *) >&2 echo "Specify file type"; return 1;;
         esac
+        # this is basically an eval of $part_esc, to undo any quoting that
+        # happened because of the %q in the tab completion. This isn't entirely
+        # watertight - if you call apparix with some ridiculous argument like
+        # "$(yes>&2)" and then try to tab complete on it, you can inject
+        # code. However, the presumption is that
+        # 1) you can already inject code because you're in a shell
+        # 2) you're not intending to type out code to hack yourself
         local part_unesc="$(bash -c "printf '%s' $part_esc")"
         local part_dir="$(dirname "$part_unesc")"
         COMPREPLY=()
