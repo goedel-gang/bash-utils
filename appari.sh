@@ -151,6 +151,8 @@ APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme unbm )
 # add a trailing hash character and then strip it at the end.
 # https://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
 function apparix_serialise() {
+    # gotcha with the curly braces: you have to put a terminating semicolon for
+    # them to be parsed correctly.
     { command cat; command echo -n '#'; } | \
         command sed 's/%/%%/g
                      s/,/%c/g' | \
@@ -298,9 +300,10 @@ function bm() {
     fi
 }
 
-# indicate differences between $APPARIXRC" and "$APPARIXRC.new"
+# indicate differences between $APPARIXRC" and "$APPARIXRC.new", or "$1" and
+# "$1.new" if given
 function apparix_change() {
-    { ! diff "$APPARIXRC" "$APPARIXRC.new"; } || \
+    { ! diff "${1:-$APPARIXRC}" "${1:-$APPARIXRC}.new"; } || \
         { >&2 echo "no change"; return 1; }
 }
 
@@ -384,9 +387,8 @@ function portal() {
 
 function portal-expand() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
-    local parentdir
-    rm -f -- "$APPARIXEXPAND"
-    true > "$APPARIXEXPAND"
+    local parentdir nochange
+    true > "$APPARIXEXPAND.new"
     command grep '^e,' -- "$APPARIXRC" | cut -f 2 -d , | \
         while IFS='' read -r parentdir; do
             parentdir="$(printf "%s" "$parentdir" | apparix_deserialise)"
@@ -404,14 +406,22 @@ function portal-expand() {
                 shopt -u failglob
                 GLOBIGNORE="./:../"
                 for _subdir in */ .*/; do
+                    # cant feasibly use realpath due to the trailing newlines
+                    # problem.
                     subdir="${_subdir%/}"
                     subdir="$(printf "%s" "$subdir" | apparix_serialise)"
                     subdir="${subdir%#}"
-                    echo "j,$subdir,$parentdir_ser/$subdir" >> "$APPARIXEXPAND"
+                    echo "j,$subdir,$parentdir_ser/$subdir" >> "$APPARIXEXPAND.new"
                 done'
         done || true
+    apparix_change "$APPARIXEXPAND" || nochange=true
+    command mv "$APPARIXEXPAND.new" "$APPARIXEXPAND"
+    if [ -n "$nochange" ]; then
+        return 1
+    fi
 }
 
+# Like to, but for when you have conflicting bookmark entries
 function whence() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
     local target
@@ -575,23 +585,23 @@ if [[ -n "$BASH_VERSION" ]]; then
     }
 
     # a file, used by _apparix_comp
-    function _apparix_comp_file() {
+    function old_apparix_comp() {
         local caller="$1"
         local cur_file="$2"
 
         if elemOf "$caller" "${APPARIX_DIR_FUNCTIONS[@]}"; then
-            if [[ -n "$BERTRAND_RUSSEL" ]]; then
+            if [[ -n "$APPARIX_USE_OLD_COMPLETION" ]]; then
                 # # Directories (add -S / for slash separator):
                 compgen -d -- "$cur_file"
             else
-                goedel_compfile "$cur_file" d
+                apparix_compfile "$cur_file" d
             fi
         elif elemOf "$caller" "${APPARIX_FILE_FUNCTIONS[@]}"; then
             # complete on filenames. this is a little harder to do nicely.
-            if [[ -n "$BERTRAND_RUSSEL" ]]; then
+            if [[ -n "$APPARIX_USE_OLD_COMPLETION" ]]; then
                 _all_files_compgen "$cur_file"
             else
-                goedel_compfile "$cur_file" f
+                apparix_compfile "$cur_file" f
             fi
         else
             >&2 echo "Unknown caller: Izaak has probably messed something up"
@@ -602,7 +612,7 @@ if [[ -n "$BASH_VERSION" ]]; then
     # the existence of this function is a counterexample to Gödel's little known
     # incompletion theorem: there's no such thing as good completion on files in
     # Bash
-    function goedel_compfile() {
+    function apparix_compfile() {
         local part_esc="$1"
         case "$2" in
             f)
@@ -690,11 +700,11 @@ if [[ -n "$BASH_VERSION" ]]; then
             app_dir="$(apparish_newlinesafe "$tag" 2>/dev/null)"
             app_dir="${app_dir%#}"
             if [[ -d "$app_dir" ]]; then
-                # can't run in subshell as _apparix_comp_file modifies COMREPLY.
+                # can't run in subshell as old_apparix_comp modifies COMREPLY.
                 # Just hope that nothing goes wrong, basically
                 >/dev/null 2>&1 pushd -- "$app_dir" ||
                     { >&2 echo "bad directory: $app_dir"; exit; }
-                _apparix_comp_file "$1" "$cur_file"
+                old_apparix_comp "$1" "$cur_file"
                 >/dev/null 2>&1 popd ||
                     { >&2 echo "could not popd"; exit; }
             else
