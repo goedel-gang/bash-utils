@@ -349,6 +349,7 @@ function unportal() {
     else
         target="$PWD"
     fi
+    target="$(printf "%s" "$target" | apparix_serialise)"
     command grep -v -Fx "e,$target" "$APPARIXRC" > "$APPARIXRC.new"
     apparix_change || nochange=true
     command mv "$APPARIXRC.new" "$APPARIXRC"
