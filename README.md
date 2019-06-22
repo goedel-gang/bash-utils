@@ -58,7 +58,7 @@ two-line zsh prompt):
 
 Here is a screenshot with colours, and a sample bookmark listing
 
-![screenshot](https://github.com/goedel-gang/bash-utils/blob/twenty-first-century/zapparix_screenshot.png)
+![screenshot](https://github.com/goedel-gang/bash-utils/blob/master/zapparix_screenshot.png)
 
 There is a similar demo shell in `zdemo/demo_zsh`, which is about three lines of
 config setting up a prompt and sourcing zapparix.
@@ -90,4 +90,4 @@ used tab completion. It's a little hard to see, but it's definitely there, in
 between the `h` and the `ello\ world` (which is to say, I didn't have to type
 any backslashes)).
 
-![screenshot](https://github.com/goedel-gang/bash-utils/blob/twenty-first-century/prompt_screenshot.png)
+![screenshot](https://github.com/goedel-gang/bash-utils/blob/master/prompt_screenshot.png)
