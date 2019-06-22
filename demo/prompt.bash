@@ -12,10 +12,11 @@
 # script somewhere. It should in theory just come standard with git.
 
 # this is where it is on my system. Find a copy at
-# https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh.
-# I also have a backuip copy in my .bash/scripts, but that's not under any kind
-# of version control or package management.
-source_if_exists /usr/share/git/git-prompt.sh "$HOME/$BASHDOTDIR/scripts/git-prompt.sh"
+# https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh, but
+# it's fairly likely that it is packaged with Git on your system. The homebrew
+# Git package has it, for example.
+source_if_exists /usr/share/git/git-prompt.sh \
+                 "${BREW_PREFIX:-/usr/local}/etc/bash_completion.d/git-prompt.sh"
 
 # show if there are staged/unstaged changes
 export GIT_PS1_SHOWDIRTYSTATE=true
