@@ -281,7 +281,7 @@ function apparix-list() {
 function bm() {
     local mark list target
     if [[ 0 == "$#" ]]; then
-        apparish
+        apparish && return 0
     fi
     mark="$(printf "%s" "$1" | apparix_serialise)"
     list="$(apparix-list "$mark")"
