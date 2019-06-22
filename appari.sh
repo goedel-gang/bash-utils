@@ -74,7 +74,7 @@
 #                             'cp somefile ($a tag src)' - although arun should
 #                             be a theoretically safer alternative, if possible.
 #
-#  --- apparix uses by default the most recent TAG   if identical tags exist.
+#  --- apparix uses by default the most recent TAG if identical tags exist.
 #                It can e.g. be useful to use 'now' as an often-changing tag.
 #     apparix-list TAG        list all destinations marked TAG
 #     whence TAG              Enter menu to select destination
@@ -210,22 +210,22 @@ function apparish_newlinesafe() {
     # We need to do this so that zsh acts like bash when doing the parameter
     # expansion "${...%#}".
     [ -n "$ZSH_VERSION" ] && emulate -L bash
-    if [[ 0 == "$#" ]]; then
+    if [ "$#" = 0 ]; then
         >&2 echo "Apparix: need arguments"
         return 1
     else
         local mark="$1"
         local list="$(command grep -F -- "j,$mark," "$APPARIXRC" "$APPARIXEXPAND")"
-        if [[ -z "$list" ]]; then
+        if [ -z "$list" ]; then
             >&2 echo "Mark '$mark' not found"
             return 1
         fi
         local target="$(<<< "$list" command tail -n 1 | command cut -f3 -d,)"
         local target="$(printf "%s" "$target" | apparix_deserialise)"
         target="${target%#}"
-        if [[ 2 == "$#" ]]; then
+        if [ "$#" = 2 ]; then
             printf "%s/%s#" "$target" "$2"
-        elif [[ 1 == "$#" ]]; then
+        elif [ "$#" = 1 ]; then
             printf "%s#" "$target"
         else
             # do not fail gracefully, to prevent hard to find errors
@@ -239,7 +239,7 @@ function apparish_newlinesafe() {
 # sacrifices some correctness). Also implements a listing of bookmarks.
 function apparish() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
-    if [[ 0 == "$#" ]]; then
+    if [ "$#" = 0 ]; then
         # don't do any deserialisation, because that will mostly just serve to
         # confuse column, by reintroducing tabs and newlines
         echo "Bookmarks"
@@ -265,7 +265,7 @@ function apparish() {
 
 # list all instances of bookmarks with some name
 function apparix-list() {
-    if [[ 0 == "$#" ]]; then
+    if [ "$#" = 0 ]; then
         >&2 echo "Need mark"
         return 1
     fi
@@ -280,7 +280,7 @@ function apparix-list() {
 # have a %n.
 function bm() {
     local mark list target
-    if [[ 0 == "$#" ]]; then
+    if [ "$#" = 0 ]; then
         apparish && return 0
     fi
     for arg; do
@@ -292,7 +292,7 @@ function bm() {
         list="$(apparix-list "$mark")"
         target="$(printf "%s" "$PWD" | apparix_serialise)"
         echo "j,$mark,$target" | tee -a -- "$APPARIXLOG" >> "$APPARIXRC"
-        if [[ -n "$list" ]]; then
+        if [ -n "$list" ]; then
             listsize="$(wc -l <<< "$list")"
             listtail="$(tail -n 2 <<< "$list")"
             ellipsis=""
@@ -333,9 +333,7 @@ function unbm() {
     fi
     apparix_change || nochange=true
     command mv "$APPARIXRC.new" "$APPARIXRC"
-    if [ -n "$nochange" ]; then
-        return 1
-    fi
+    [ -n "$nochange" ] && return 1
 }
 
 # Remove a portal. Given an argument, it tries to remove the portal in the
@@ -354,9 +352,7 @@ function unportal() {
     apparix_change || nochange=true
     command mv "$APPARIXRC.new" "$APPARIXRC"
     portal-expand
-    if [ -n "$nochange" ]; then
-        return 1
-    fi
+    [ -n "$nochange" ] && return 1
 }
 
 # Run some command on a subdirectory or subfile of a bookmark.
@@ -413,8 +409,8 @@ function portal-expand() {
                 shopt -u failglob
                 GLOBIGNORE="./:../"
                 for _subdir in */ .*/; do
-                    # cant feasibly use realpath due to the trailing newlines
-                    # problem.
+                    # can'\''t feasibly use realpath due to the trailing
+                    # newlines problem.
                     subdir="${_subdir%/}"
                     subdir="$(printf "%s" "$subdir" | apparix_serialise)"
                     subdir="${subdir%#}"
@@ -423,16 +419,14 @@ function portal-expand() {
         done || true
     apparix_change "$APPARIXEXPAND" || nochange=true
     command mv "$APPARIXEXPAND.new" "$APPARIXEXPAND"
-    if [ -n "$nochange" ]; then
-        return 1
-    fi
+    [ -n "$nochange" ] && return 1
 }
 
 # Like to, but for when you have conflicting bookmark entries
 function whence() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
     local target
-    if [[ 0 == "$#" ]]; then
+    if [ "$#" = 0 ]; then
         >&2 echo "Need mark"
         return 1
     fi
@@ -547,7 +541,7 @@ function apparish_ls() {
 EOH
 }
 
-if [[ -n "$BASH_VERSION" ]]; then
+if [ -n "$BASH_VERSION" ]; then
     # assert that bash version is at least $1.$2.$3
     version_assert() {
         for i in {1..3}; do
@@ -597,7 +591,7 @@ if [[ -n "$BASH_VERSION" ]]; then
         local cur_file="$2"
 
         if elemOf "$caller" "${APPARIX_DIR_FUNCTIONS[@]}"; then
-            if [[ -n "$APPARIX_USE_OLD_COMPLETION" ]]; then
+            if [ -n "$APPARIX_USE_OLD_COMPLETION" ]; then
                 # # Directories (add -S / for slash separator):
                 compgen -d -- "$cur_file"
             else
@@ -605,7 +599,7 @@ if [[ -n "$BASH_VERSION" ]]; then
             fi
         elif elemOf "$caller" "${APPARIX_FILE_FUNCTIONS[@]}"; then
             # complete on filenames. this is a little harder to do nicely.
-            if [[ -n "$APPARIX_USE_OLD_COMPLETION" ]]; then
+            if [ -n "$APPARIX_USE_OLD_COMPLETION" ]; then
                 _all_files_compgen "$cur_file"
             else
                 apparix_compfile "$cur_file" f
@@ -636,7 +630,7 @@ if [[ -n "$BASH_VERSION" ]]; then
             # this is a bit of a weird hack because printf "%q\n" with no
             # arguments prints ''. It should be robust, because any actual
             # single quotes will have been escaped by printf.
-            if [[ "$result" != "''" ]]; then
+            if [ "$result" != "''" ]; then
                 COMPREPLY+=("$result")
             fi
         # use an explicit bash subshell to set some glob flags.
@@ -647,21 +641,21 @@ if [[ -n "$BASH_VERSION" ]]; then
             shopt -u dotglob
             shopt -u failglob
             GLOBIGNORE="./:../"
-            if [[ "$part_dir" == "." ]]; then
+            if [ "$part_dir" = "." ]; then
                 find_name_prefix="./"
             fi
             # here we delay the %q escaping because I want to strip trailing /s
-            if [[ -d "$part_unesc" ]]; then
+            if [ -d "$part_unesc" ]; then
                 if [[ "$part_unesc" != +(/) ]]; then
                     part_unesc="${part_unesc%%+(/)}"
                 fi
-                if [[ "$find_files" == true ]]; then
+                if [ "$find_files" = "true" ]; then
                     printf "%q\0" "$part_unesc"/* "$part_unesc"/*/
                 else
                     printf "%q\0" "$part_unesc"/*/
                 fi
             else
-                if [[ "$find_files" == true ]]; then
+                if [ "$find_files" = "true" ]; then
                     printf "%q\0" "$part_unesc"*/ "$part_unesc"*
                 else
                     printf "%q\0" "$part_unesc"*/
@@ -684,7 +678,7 @@ if [[ -n "$BASH_VERSION" ]]; then
                 command cut -f2 -d, | command sort | command sed 's/^/,/' | \
                 command grep -Fi -- ",$target" | \
                 command sed 's/^,//'
-            if [[ -n "$1" ]]; then
+            if [ -n "$1" ]; then
                 command grep "^j" -- "$APPARIXRC" "$APPARIXEXPAND" | \
                     command cut -f2 -d, | command sort | command sed 's/^/,/' | \
                     command grep -Fi -- "$target" | \
@@ -699,14 +693,14 @@ if [[ -n "$BASH_VERSION" ]]; then
     function _apparix_comp() {
         local tag="${COMP_WORDS[1]}"
         COMPREPLY=()
-        if [[ "$COMP_CWORD" == 1 ]]; then
+        if [ "$COMP_CWORD" = 1 ]; then
             _apparix_compgen_bm "$tag"
         else
             local cur_file app_dir
             cur_file="${COMP_WORDS[2]}"
             app_dir="$(apparish_newlinesafe "$tag" 2>/dev/null)"
             app_dir="${app_dir%#}"
-            if [[ -d "$app_dir" ]]; then
+            if [ -d "$app_dir" ]; then
                 # can't run in subshell as old_apparix_comp modifies COMREPLY.
                 # Just hope that nothing goes wrong, basically
                 >/dev/null 2>&1 pushd -- "$app_dir" ||
@@ -734,7 +728,7 @@ if [[ -n "$BASH_VERSION" ]]; then
             "${APPARIX_FILE_FUNCTIONS[@]}" "${APPARIX_DIR_FUNCTIONS[@]}"
     fi
 
-elif [[ -n "$ZSH_VERSION" ]]; then
+elif [ -n "$ZSH_VERSION" ]; then
     # Use zsh's completion system, as this seems a lot more robust, rather
     # than using bashcompinit to reuse the bash code but really this wasn't
     # a hassle to write
