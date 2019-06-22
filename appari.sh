@@ -274,30 +274,36 @@ function apparix-list() {
         command cut -f3 -d,
 }
 
-# create a bookmark in CWD. The bookmark is treated as unsafe, and is passed
-# through apparix_serialise to make it safe. This means that if you give an
-# argument with a newline in, the bookmark that gets created will instead have a
-# %n.
+# create one or more bookmarks in CWD. The bookmark is treated as unsafe, and is
+# passed through apparix_serialise to make it safe. This means that if you give
+# an argument with a newline in, the bookmark that gets created will instead
+# have a %n.
 function bm() {
     local mark list target
     if [[ 0 == "$#" ]]; then
         apparish && return 0
     fi
-    mark="$(printf "%s" "$1" | apparix_serialise)"
-    list="$(apparix-list "$mark")"
-    target="$(printf "%s" "$PWD" | apparix_serialise)"
-    echo "j,$mark,$target" | tee -a -- "$APPARIXLOG" >> "$APPARIXRC"
-    if [[ -n "$list" ]]; then
-        listsize="$(wc -l <<< "$list")"
-        listtail="$(tail -n 2 <<< "$list")"
-        ellipsis=""
-        if [ "$listsize" -gt 2 ]; then ellipsis="\n(...)"; fi
-        if [ "$listsize" -gt 0 ]; then
-            echo -e "Bookmark $mark exists" \
-                    "($listsize total):$ellipsis\n$listtail"
+    for arg; do
+        if [ -z "$arg" ]; then
+            >&2 echo "Bookmarks cannot be empty"
+            return 1
         fi
-        echo "$target (added)"
-    fi
+        mark="$(printf "%s" "$arg" | apparix_serialise)"
+        list="$(apparix-list "$mark")"
+        target="$(printf "%s" "$PWD" | apparix_serialise)"
+        echo "j,$mark,$target" | tee -a -- "$APPARIXLOG" >> "$APPARIXRC"
+        if [[ -n "$list" ]]; then
+            listsize="$(wc -l <<< "$list")"
+            listtail="$(tail -n 2 <<< "$list")"
+            ellipsis=""
+            if [ "$listsize" -gt 2 ]; then ellipsis="\n(...)"; fi
+            if [ "$listsize" -gt 0 ]; then
+                echo -e "Bookmark $mark exists" \
+                        "($listsize total):$ellipsis\n$listtail"
+            fi
+            echo "$target (added)"
+        fi
+    done
 }
 
 # indicate differences between $APPARIXRC" and "$APPARIXRC.new", or "$1" and
@@ -320,8 +326,8 @@ function unbm() {
     else
         target="$(printf "%s" "$PWD" | apparix_serialise)"
         # append two slashes to the end in order to match them with a literal
-        # grep
-        command sed 's#$#//#' "$APPARIXRC" | \
+        # grep. Only do this for bookmarks so portal don't get removed.
+        command sed 's#^j,.*$#&//#' "$APPARIXRC" | \
             command grep -v -F ",$target//" | \
             command sed 's#//$##' > "$APPARIXRC.new"
     fi
