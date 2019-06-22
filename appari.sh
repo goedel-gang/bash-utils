@@ -168,7 +168,7 @@ function apparix_serialise() {
 # This adds a trailing character "#" to preserve any trailing newlines you had.
 # Remove it with the parameter expansion ${var%#}
 function apparix_deserialise() {
-    # use perl rather than sed, because sed doesn't reliable handle trailing
+    # use perl rather than sed, because sed doesn't reliably handle trailing
     # newlines, or particularly the lack thereof across distributions.
     # BSD sed just bluntly adds a newline at the end.
     # https://stackoverflow.com/questions/13325138/why-does-sed-add-a-new-line-in-osx
