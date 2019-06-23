@@ -1,6 +1,6 @@
 # bash-utils
 
-See the `newlines` branch for a less divergent copy of some of the stuff here.
+See the `micans` branch for a less divergent copy of some of the stuff here.
 
 ## Zapparix
 
