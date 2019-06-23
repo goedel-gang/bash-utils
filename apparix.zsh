@@ -66,7 +66,7 @@ alias via='"${EDITOR:-vim}" "$ZAPPARIXRC"'
 
 # indicate differences between $ZAPPARIXRC" and "$ZAPPARIXRC.new"
 function zapparix_change() {
-    { ! "${ZAPP_DIFF_CMD[@]}" "$ZAPPARIXRC" "$ZAPPARIXRC.new"; } || \
+    { ! "${ZAPP_DIFF_CMD[@]}" "$ZAPPARIXRC" "$ZAPPARIXRC.new"; } ||
         { >&2 echo "no change"; return 1; }
 }
 
@@ -104,9 +104,9 @@ function bm() {
         fi
     else
         { printf 'mark\ttarget\n';
-          hash -dL | \
-             grep -v "^#" | \
-             sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'; } | \
+          hash -dL |
+             grep -v "^#" |
+             sed -E -e 's/^hash -d( --)? //' -e 's/=/'$'\t''/'; } |
              column -t -s $'\t'
     fi
     zapp_post
@@ -150,11 +150,11 @@ function unbm() {
         # refresh, anyway.
         hash -d -- _GOEDEL_TEST="$PWD"
         # probably this should be done with awk or perl or something
-        quot_pwd="$(hash -dL | \
-            command grep '^hash -d\( --\)\? _GOEDEL_TEST=' | \
+        quot_pwd="$(hash -dL |
+            command grep '^hash -d\( --\)\? _GOEDEL_TEST=' |
             command sed -E 's/^hash -d( --)? _GOEDEL_TEST=//')"
-        command sed 's#$#//#' "$ZAPPARIXRC" | \
-                command grep -v -F "=$quot_pwd//" | \
+        command sed 's#$#//#' "$ZAPPARIXRC" |
+                command grep -v -F "=$quot_pwd//" |
                 command sed 's#//$##' > "$ZAPPARIXRC.new"
     fi
     zapparix_change || nochange=true

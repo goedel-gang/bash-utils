@@ -153,10 +153,10 @@ APPARIX_DIR_FUNCTIONS=( to als ald amd todo rme unbm )
 function apparix_serialise() {
     # gotcha with the curly braces: you have to put a terminating semicolon for
     # them to be parsed correctly.
-    { command cat; command echo -n '#'; } | \
+    { command cat; command echo -n '#'; } |
         command sed 's/%/%%/g
-                     s/,/%c/g' | \
-        command awk 'BEGIN { ORS="%n" } { print $0 }' | \
+                     s/,/%c/g' |
+        command awk 'BEGIN { ORS="%n" } { print $0 }' |
         command sed 's/#%n$//'
 }
 
@@ -243,15 +243,15 @@ function apparish() {
         # don't do any deserialisation, because that will mostly just serve to
         # confuse column, by reintroducing tabs and newlines
         echo "Bookmarks"
-        grep '^j' -- "$APPARIXRC" | command cut -d, -f2,3 | \
-            command column -t -s , | \
+        grep '^j' -- "$APPARIXRC" | command cut -d, -f2,3 |
+            command column -t -s , |
             sed 's/^/    /'
         echo "Portals"
-        grep '^e' -- "$APPARIXRC" | command cut -d, -f2 | \
-            command column -t -s , | \
+        grep '^e' -- "$APPARIXRC" | command cut -d, -f2 |
+            command column -t -s , |
             sed 's/^/    /'
         echo "Expanded bookmarks"
-        command cut -d, -f2,3 "$APPARIXEXPAND" | command column -t -s , | \
+        command cut -d, -f2,3 "$APPARIXEXPAND" | command column -t -s , |
             sed 's/^/    /'
         return
     fi
@@ -270,7 +270,7 @@ function apparix-list() {
         return 1
     fi
     local mark="$1"
-    command grep -F -- ",$mark," "$APPARIXRC" "$APPARIXEXPAND" | \
+    command grep -F -- ",$mark," "$APPARIXRC" "$APPARIXEXPAND" |
         command cut -f3 -d,
 }
 
@@ -309,7 +309,7 @@ function bm() {
 # indicate differences between $APPARIXRC" and "$APPARIXRC.new", or "$1" and
 # "$1.new" if given
 function apparix_change() {
-    { ! diff "${1:-$APPARIXRC}" "${1:-$APPARIXRC}.new"; } || \
+    { ! diff "${1:-$APPARIXRC}" "${1:-$APPARIXRC}.new"; } ||
         { >&2 echo "no change"; return 1; }
 }
 
@@ -327,8 +327,8 @@ function unbm() {
         target="$(printf "%s" "$PWD" | apparix_serialise)"
         # append two slashes to the end in order to match them with a literal
         # grep. Only do this for bookmarks so portal don't get removed.
-        command sed 's#^j,.*$#&//#' "$APPARIXRC" | \
-            command grep -v -F ",$target//" | \
+        command sed 's#^j,.*$#&//#' "$APPARIXRC" |
+            command grep -v -F ",$target//" |
             command sed 's#//$##' > "$APPARIXRC.new"
     fi
     apparix_change || nochange=true
@@ -392,7 +392,7 @@ function portal-expand() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
     local parentdir nochange
     true > "$APPARIXEXPAND.new"
-    command grep '^e,' -- "$APPARIXRC" | cut -f 2 -d , | \
+    command grep '^e,' -- "$APPARIXRC" | cut -f 2 -d , |
         while IFS='' read -r parentdir; do
             parentdir="$(printf "%s" "$parentdir" | apparix_deserialise)"
             parentdir="${parentdir%#}"
@@ -445,17 +445,17 @@ function amibm() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
     target="$(printf "%s" "$PWD" | apparix_serialise)"
     {
-    command grep "^j" "$APPARIXRC" | command cut -d, -f2,3 | \
-        sed 's#$#//#' | \
-        command grep -F -- ",$target//" | \
+    command grep "^j" "$APPARIXRC" | command cut -d, -f2,3 |
+        sed 's#$#//#' |
+        command grep -F -- ",$target//" |
         command cut -f1 -d,
-    command grep "^e" "$APPARIXRC" | command cut -d, -f2 | \
-        sed 's#$#//#' | \
-        command grep -Fx -- "$target//" | \
+    command grep "^e" "$APPARIXRC" | command cut -d, -f2 |
+        sed 's#$#//#' |
+        command grep -Fx -- "$target//" |
         command sed "s/.*/[p]/"
-    command cut -d, -f2,3 "$APPARIXEXPAND" | \
-        sed 's#$#//#' | \
-        command grep -F -- ",$target//" | \
+    command cut -d, -f2,3 "$APPARIXEXPAND" |
+        sed 's#$#//#' |
+        command grep -F -- ",$target//" |
         command sed "s/.*/>[p]/"
     } | command paste -s -d ' ' - || true
     # always return successfully, even if grep doesn't find anything
@@ -465,7 +465,7 @@ function amibm() {
 function bmgrep() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
     pat="${1?Need a pattern to search}"
-    command grep -i -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' | \
+    command grep -i -- "$pat" "$APPARIXRC" | cut -f 2,3 -d ',' |
         column -t -s,
 }
 
@@ -681,15 +681,15 @@ if [ -n "$BASH_VERSION" ]; then
         while IFS= read -r line; do
             COMPREPLY+=("$(printf "%q" "$line")")
         done< <(
-            grep "^j" -- "$APPARIXRC" "$APPARIXEXPAND" | \
-                command cut -f2 -d, | command sort | command sed 's/^/,/' | \
-                command grep -Fi -- ",$target" | \
+            grep "^j" -- "$APPARIXRC" "$APPARIXEXPAND" |
+                command cut -f2 -d, | command sort | command sed 's/^/,/' |
+                command grep -Fi -- ",$target" |
                 command sed 's/^,//'
             if [ -n "$1" ]; then
-                command grep "^j" -- "$APPARIXRC" "$APPARIXEXPAND" | \
-                    command cut -f2 -d, | command sort | command sed 's/^/,/' | \
-                    command grep -Fi -- "$target" | \
-                    command grep -Fiv -- ",$target" | \
+                command grep "^j" -- "$APPARIXRC" "$APPARIXEXPAND" |
+                    command cut -f2 -d, | command sort | command sed 's/^/,/' |
+                    command grep -Fi -- "$target" |
+                    command grep -Fiv -- ",$target" |
                     command sed 's/^,//'
             fi
         )
