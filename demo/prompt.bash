@@ -175,7 +175,7 @@ PROMPT_COMMAND='goedel_prompt'
 prompt_profile() {
     LOOPS=200
     echo "Profiling each component with $LOOPS loops"
-    for component in goedel_prompt user_prompt exitstatus_prompt host_prompt\
+    for component in goedel_prompt user_prompt exitstatus_prompt host_prompt \
         shlvl_prompt dir_prompt apparix_prompt __git_ps1; do
         echo
         echo -n "$component..."
