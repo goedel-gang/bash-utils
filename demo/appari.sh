@@ -1,1 +1,1 @@
-../appari.sh
+../.bourne-apparish

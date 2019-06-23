@@ -1,1 +1,0 @@
-../apparix.zsh
