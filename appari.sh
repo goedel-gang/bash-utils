@@ -215,12 +215,14 @@ function apparish_newlinesafe() {
         return 1
     else
         local mark="$1"
-        local list="$(command grep -F -- "j,$mark," "$APPARIXRC" "$APPARIXEXPAND")"
-        if [ -z "$list" ]; then
+        local target="$(command grep -F -- "j,$mark," \
+                                           "$APPARIXRC" "$APPARIXEXPAND" |
+                            command tail -n 1 |
+                            command cut -f3 -d,)"
+        if [ -z "$target" ]; then
             >&2 echo "Mark '$mark' not found"
             return 1
         fi
-        local target="$(<<< "$list" command tail -n 1 | command cut -f3 -d,)"
         local target="$(printf "%s" "$target" | apparix_deserialise)"
         target="${target%#}"
         if [ "$#" = 2 ]; then
