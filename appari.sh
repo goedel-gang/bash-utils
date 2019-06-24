@@ -360,6 +360,9 @@ function unportal() {
 # Run some command on a subdirectory or subfile of a bookmark.
 # The mark and subdirectory come first, followed by the command. Make the
 # subdirectory an empty string if you don't want to specify it.
+# If given no arguments, it can be used to run executables inside bookmarks. If
+# you have the autocd option set, this can also be used to cd to directories
+# inside bookmarks.
 function arun() {
     [ -n "$ZSH_VERSION" ] && emulate -L bash
     local loc
