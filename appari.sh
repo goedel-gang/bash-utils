@@ -375,6 +375,8 @@ function arun() {
         if [ ! -e "$loc" ]; then
             >&2 echo "warning: '$loc' does not exist"
         fi
+        printf "%s " "$@"
+        printf "%s\n" "$loc"
         "$@" "$loc"
     else
         return 1
