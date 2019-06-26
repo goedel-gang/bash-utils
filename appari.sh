@@ -478,15 +478,31 @@ function bmgrep() {
 
 # edit a TODO file
 function todo() {
-    # make sure to use Bashy expansion for "$@"/TODO
-    [ -n "$ZSH_VERSION" ] && emulate -L bash
     ae "$1" "$2"/TODO
+}
+
+# wrapper to try and find README files with extensions (like md or txt, for
+# example)
+# subshell to set some shopts
+function apparix_glob_readmes() {
+    bash -c '
+    shopt -s nullglob
+    shopt -u failglob
+    function apparix_edit_readmes() {
+        if [ "$#" = 1 ]; then
+            "${EDITOR:-vim}" -- "$1"
+        else
+            shift
+            "${EDITOR:-vim}" -- "$@"
+        fi
+    }
+    apparix_edit_readmes "$1"/README "$1"/README.*
+    ' DUMMY "$1"
 }
 
 # edit a README file
 function rme() {
-    [ -n "$ZSH_VERSION" ] && emulate -L bash
-    ae "$1" "$2"/README
+    arun "$1" "$2" apparix_glob_readmes
 }
 
 # apparix listing of directories of mark
@@ -515,7 +531,7 @@ function amd() {
     arun "$1" "$2" mkdir -p --
 }
 
-# apparix edit of file in mark or subdirectory of mark
+# run view on file in mark or subdirectory of mark
 function av() {
     arun "$1" "$2" view --
 }
@@ -648,6 +664,8 @@ if [ -n "$BASH_VERSION" ]; then
                 COMPREPLY+=("$result")
             fi
         # use an explicit bash subshell to set some glob flags.
+        # Not using normal subshell to try and be more cross-shell compatible
+        # (basically just so that Zsh can run this too)
         done < <(part_dir="$part_dir" part_unesc="$part_unesc" \
                  find_files="$find_files" bash -c '
             shopt -s nullglob
