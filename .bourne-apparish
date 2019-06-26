@@ -382,7 +382,7 @@ function arun() {
 
 # cd to a mark
 function to() {
-    arun "$1" "$2" cd
+    arun "$1" "$2" cd --
 }
 
 function portal() {
@@ -488,18 +488,18 @@ function rme() {
 
 # apparix listing of directories of mark
 function ald() {
-    arun "$1" "$2" ls -d
+    arun "$1" "$2" ls -d --
 }
 
 # apparix ls of mark
 function als() {
-    arun "$1" "$2" ls
+    arun "$1" "$2" ls --
 }
 
 # We need to define this intermediate function so that we move the argument
 # order around
 function apparix_aget_cp() {
-    cp "$1" .
+    cp -- "$1" .
 }
 
 # apparix get; get something from a mark
@@ -519,7 +519,7 @@ function av() {
 
 # apparix edit of file in mark or subdirectory of mark
 function ae() {
-    arun "$1" "$2" "${EDITOR:-vim}"
+    arun "$1" "$2" "${EDITOR:-vim}" --
 }
 
 # Display usage text
