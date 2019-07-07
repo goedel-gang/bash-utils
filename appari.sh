@@ -482,22 +482,29 @@ function todo() {
 }
 
 # wrapper to try and find README files with extensions (like md or txt, for
-# example)
+# example). Works by checking loc/README and loc/README.* for readability,
+# opening all readable files. If none are found, simply opens loc/README
 # subshell to set some shopts
 function apparix_glob_readmes() {
     bash -c '
-    shopt -s nullglob
-    shopt -u failglob
-    function apparix_edit_readmes() {
-        if [ "$#" = 1 ]; then
-            "${EDITOR:-vim}" -- "$1"
-        else
-            shift
-            "${EDITOR:-vim}" -- "$@"
-        fi
-    }
-    apparix_edit_readmes "$1"/README "$1"/README.*
-    ' DUMMY "$1"
+        shopt -s nullglob
+        shopt -u failglob
+        function apparix_edit_readmes() {
+            local default_rme="$1"
+            for rme_file; do
+                shift
+                if [ -r "$rme_file" ]; then
+                    set -- "$@" "$rme_file"
+                fi
+            done
+            if [ "$#" = 0 ]; then
+                "${EDITOR:-vim}" -- "$default_rme"
+            else
+                "${EDITOR:-vim}" -- "$@"
+            fi
+        }
+        apparix_edit_readmes "$1"/README "$1"/README.*
+        ' DUMMY "$1"
 }
 
 # edit a README file
