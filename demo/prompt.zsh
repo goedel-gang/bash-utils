@@ -57,10 +57,10 @@ zle -N zle-keymap-select
 
 # two-line prompt, with a blank line behind it.
 # If zsh is in apparix mode, also indicate the current bookmark
-if [[ "$GOEDEL_APPARIX" == "true" ]]; then
+if [ "$GOEDEL_APPARIX" = "true" ]; then
     function apparix_prompt {
         iz_bm="$(amibm)"
-        if [[ -n "$iz_bm" ]]; then
+        if [ -n "$iz_bm" ]; then
             echo " $iz_bm "
         fi
     }

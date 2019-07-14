@@ -51,7 +51,7 @@ export GIT_PS1_SHOWUPSTREAM=auto
 # successful, and red otherwise. Indicates the value of a non-zero return
 # status. TAKES AN ARGUMENT
 exitstatus_prompt() {
-    if [[ "$1" == 0 ]]; then
+    if [ "$1" = 0 ]; then
         # echo -n "\[$(tput setaf 2)\]@"
         echo -n "\[\e[38;5;2m\]@"
     else
@@ -63,7 +63,7 @@ exitstatus_prompt() {
 # function to format a nice SHLVL indicating prompt component, to warn about
 # nested shells.
 shlvl_prompt() {
-    if [[ "$SHLVL" = 1 ]]; then
+    if [ "$SHLVL" = 1 ]; then
         # echo -n "\[$(tput setaf 7)\]|"
         echo -n "\[\e[38;5;7m\]|"
     else
@@ -75,7 +75,7 @@ shlvl_prompt() {
 # function which returns red if the user has root privileges, and magenta
 # otherwise, displaying the username
 user_prompt() {
-    if [[ $EUID -ne 0 ]]; then
+    if [ $EUID -ne 0 ]; then
         # echo -n "\[$(tput setaf 5)\]\u"
         echo -n "\[\e[38;5;5m\]\u"
     else
@@ -112,7 +112,7 @@ apparix_prompt() {
         # escape backticks and dollars so that bash doesn't get confused about
         # command substitution
         local goedel_bm="$(amibm | sed 's/[$`]/\\&/g')"
-        if [[ -n "$goedel_bm" ]]; then
+        if [ -n "$goedel_bm" ]; then
             # echo -n " \[$(tput setaf 4)\]($goedel_bm)"
             echo -n " \[\e[38;5;4m\]($goedel_bm)"
         fi
