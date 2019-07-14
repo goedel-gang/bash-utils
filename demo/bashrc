@@ -1,6 +1,6 @@
 source_if_exists() {
     for sfile; do
-        if [[ -f "$sfile" ]]; then
+        if [ -r "$sfile" ]; then
             source "$sfile"
             return 0
         fi;

@@ -91,14 +91,14 @@ function bm() {
     local mark nochange
     hash -dr
     source "$ZAPPARIXRC"
-    if [[ -n "${1:-}" ]]; then
+    if [ -n "${1-}" ]; then
         mark="$1"
         touch "$ZAPPARIXRC"
         hash -d -- "$mark"="$PWD"
         { echo "# vim: ft=zsh"; hash -dL; } > "$ZAPPARIXRC.new"
         zapparix_change || nochange=true
         command mv "$ZAPPARIXRC.new" "$ZAPPARIXRC"
-        if [[ -n "${nochange:-}" ]]; then
+        if [ -n "${nochange-}" ]; then
             zapp_post
             return 1
         fi
@@ -131,7 +131,7 @@ function unbm() {
     emulate -L zsh
     setopt pipefail nounset errreturn noclobber
     local nochange quot_pwd
-    if [[ -n "${1:-}" ]]; then
+    if [ -n "${1-}" ]; then
         mark="$1"
         # remove lines either with hash -d -- $mark= or hash -d $mark= might
         # cause false positives in really truly bizarre circumstances, eg if you
@@ -162,7 +162,7 @@ function unbm() {
     hash -dr
     source "$ZAPPARIXRC"
     zapp_post
-    if [[ -n "${nochange:-}" ]]; then
+    if [ -n "${nochange-}" ]; then
         return 1
     fi
 }

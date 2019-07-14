@@ -1,9 +1,8 @@
 ALL = demo/prompt.bash
 
-# make them phonies because Git checkouts will mess up timestamps
-.PHONY: all $(ALL)
+.PHONY: .FORCE
 
 all: $(ALL)
 
-demo/prompt.bash: ~/.bash/prompt.bash
+demo/prompt.bash: ~/.bash/prompt.bash .FORCE
 	cp $< $@

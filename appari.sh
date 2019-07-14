@@ -611,7 +611,7 @@ if [ -n "$BASH_VERSION" ]; then
     function elemOf() {
         local e match="$1"
         shift
-        for e; do [[ "$e" == "$match" ]] && return 0; done
+        for e; do [ "$e" = "$match" ] && return 0; done
         return 1
     }
 
@@ -685,7 +685,7 @@ if [ -n "$BASH_VERSION" ]; then
             fi
             # here we delay the %q escaping because I want to strip trailing /s
             if [ -d "$part_unesc" ]; then
-                if [[ "$part_unesc" != +(/) ]]; then
+                if [[ ! "$part_unesc" =~ '"'"'^/+$'"'"' ]]; then
                     part_unesc="${part_unesc%%+(/)}"
                 fi
                 if [ "$find_files" = "true" ]; then
