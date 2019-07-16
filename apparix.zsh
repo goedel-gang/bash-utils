@@ -116,6 +116,7 @@ function bm() {
 function zapp() {
     if [ "$ZAPPARIX_ACTIVE" = "false" ]; then
         ZAPPARIX_ACTIVE=true
+        hash -dr
         source "$ZAPPARIXRC"
         echo "\e[32mZapparix is now active"
     else
